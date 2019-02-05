@@ -318,7 +318,9 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 			log.Println(len(userTasks), "tasks belongs to ", sessionUserid)
 			for i := range userTasks{
 			log.Println(userTasks[i])
+			w.Write([]byte(fmt.Sprintf("%s", userTasks[i])))
 			}
+			
 		}
 	}
 

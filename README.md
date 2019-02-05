@@ -45,14 +45,15 @@ You can now try hitting the create route from the same client to add tasks:
 ```
 GET http://localhost:8000/create
 
-{"UserId": "123",
-	"Name": "H.Kitahara",
-	"Id": "12",
+{
+    "UserId": "123",
+    "Name": "Ankr-network",
+    "Id": "12",
     "Type": "web",
     "Image": "nginx:1.12",
-	"Replica": 1,
-	"DataCenter": "aslkdfjas",
-	"DataCenterId": "10"}
+    "Replica": 1,
+    "DataCenter": "datacenter01",
+    "DataCenterId": "10"}
 ```
 
 You can now try hitting the list route from the same client to get the tasklist:
