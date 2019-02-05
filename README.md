@@ -17,7 +17,7 @@ go build
 ./dccn-midway
 ```
 
-Now, using any HTTP client with support for cookies (like [Postman](https://www.getpostman.com/apps), or your web browser) make a sign-up request with the appropriate credentials:
+Now, using any HTTP client with support for cookies (like [Postman](https://www.getpostman.com/apps)) make a sign-up request with the appropriate credentials:
 
 ```
 POST http://localhost:8000/signup
