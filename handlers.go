@@ -7,7 +7,7 @@ import (
 	"time"
 	"google.golang.org/grpc"
 	usermgr "github.com/Ankr-network/dccn-common/protos/usermgr/v1/grpc"
-	"github.com/satori/go.uuid"
+	//"github.com/satori/go.uuid"
 	"context"
 	log "github.com/sirupsen/logrus"
 )
@@ -188,8 +188,33 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	// The code uptil this point is the same as the first part of the `Welcome` route
 
 	// Now, create a new session token for the current user
-	unew, err := uuid.NewV4()
-	newSessionToken := unew.String()
+	
+	
+	
+	
+
+	conn, err := grpc.Dial("client-dev.dccn.ankr.network:50051", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer func(conn *grpc.ClientConn) {
+		if err := conn.Close(); err != nil {
+			log.Println(err.Error())
+		}
+	}(conn)
+	userClient := usermgr.NewUserMgrClient(conn)
+
+	_, err = userClient.VerifyAndRefreshToken(context.Background(), &usermgr.Token{Token: sessionToken})
+	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Printf("Something went wrong! \n", err)
+		return
+	} else {
+		log.Printf("Refresh Success!")
+	}
+
+newSessionToken := sessionToken
+
 	_, err = cache.Do("SETEX", newSessionToken, "120", fmt.Sprintf("%s",response))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -209,4 +234,5 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		Value:   newSessionToken,
 		Expires: time.Now().Add(120 * time.Second),
 	})
+	
 }
