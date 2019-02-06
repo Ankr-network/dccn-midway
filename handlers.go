@@ -54,13 +54,13 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 	rsp, err := userClient.Login(context.TODO(), &usermgr.LoginRequest{Email: creds.Username, Password: creds.Password})
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	} else {
 		log.Printf("login Success: %s\n", rsp.Token)
 	}
 	if rsp.Error != nil{
-		fmt.Printf("Something went wrong! In hub\n", rsp.Error)
+		fmt.Printf("Something went wrong! In hub %s\n", rsp.Error)
 			return
 	}
 	//u, err := uuid.NewV4()
@@ -126,7 +126,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	_, err = userClient.Register(context.Background(), user)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! \n")
 		return
 	} else {
 		log.Printf("Register Success!")
@@ -207,7 +207,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	_, err = userClient.VerifyAndRefreshToken(context.Background(), &usermgr.Token{Token: sessionToken})
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! \n %s", err)
 		return
 	} else {
 		log.Printf("Refresh Success!")

@@ -16,6 +16,7 @@ func main() {
 	http.HandleFunc("/welcome", Welcome)
 	http.HandleFunc("/refresh", Refresh)
 	http.HandleFunc("/create", CreateTask)
+	http.HandleFunc("/update", UpdateTask)
 	http.HandleFunc("/list", ListTask)
 	http.HandleFunc("/delete", CancelTask)
 	http.HandleFunc("/purge", PurgeTask)

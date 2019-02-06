@@ -36,12 +36,12 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! \n", err)
+			fmt.Printf("Something went wrong! %s\n", err)
 			return
 		}
 		// For any other type of error, return a bad request status
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	sessionToken := c.Value
@@ -52,12 +52,12 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized\n", err)
+			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized %s\n", err)
 			return
 		}
 		// For any other type of error, return a bad request status
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong!  In request of cookies of userid\n", err)
+		fmt.Printf("Something went wrong!  In request of cookies of userid %s\n", err)
 		return
 	}
 	sessionUserid := UserId.Value
@@ -68,13 +68,13 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// If there is an error fetching from cache, return an internal server error status
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s \n", err)
 		return
 	}
 	if response == nil {
 		// If the session token is not present in cache, return an unauthorized error
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	
@@ -84,7 +84,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	if err1 != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! \n", err1)
+		fmt.Printf("Something went wrong! %s\n", err1)
 		return
 	}
 
@@ -124,6 +124,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 	if tcrp.Error == nil {
 		log.Info("Task created successfully. \n", tcrp.TaskId)
+		w.Write([]byte(fmt.Sprintf("%s", tcrp.TaskId)))
 	} else {
 		log.Info("Fail to create task. \n", tcrp.Error)
 	}
@@ -141,12 +142,12 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! \n", err)
+			fmt.Printf("Something went wrong! %s\n", err)
 			return
 		}
 		// For any other type of error, return a bad request status
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	sessionToken := c.Value
@@ -157,12 +158,12 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized\n", err)
+			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized %s\n", err)
 			return
 		}
 		// For any other type of error, return a bad request status
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong!  In request of cookies of userid\n", err)
+		fmt.Printf("Something went wrong!  In request of cookies of userid %s\n", err)
 		return
 	}
 	sessionUserid := UserId.Value
@@ -173,13 +174,13 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// If there is an error fetching from cache, return an internal server error status
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	if response == nil {
 		// If the session token is not present in cache, return an unauthorized error
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	
@@ -189,7 +190,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	if err1 != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! \n", err1)
+		fmt.Printf("Something went wrong! %s\n", err1)
 		return
 	}
 
@@ -248,12 +249,12 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! \n", err)
+			fmt.Printf("Something went wrong! %s\n", err)
 			return
 		}
 		// For any other type of error, return a bad request status
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	sessionToken := c.Value
@@ -264,12 +265,12 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized\n", err)
+			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized %s\n", err)
 			return
 		}
 		// For any other type of error, return a bad request status
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong!  In request of cookies of userid\n", err)
+		fmt.Printf("Something went wrong!  In request of cookies of userid %s\n", err)
 		return
 	}
 	sessionUserid := UserId.Value
@@ -280,13 +281,13 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// If there is an error fetching from cache, return an internal server error status
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	if response == nil {
 		// If the session token is not present in cache, return an unauthorized error
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 
@@ -316,9 +317,10 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 			log.Printf("no tasks belongs to %s", sessionUserid)
 		} else {
 			log.Println(len(userTasks), "tasks belongs to ", sessionUserid)
+			w.Write([]byte(fmt.Sprintf("%s", userTasks)))
 			for i := range userTasks{
 			log.Println(userTasks[i])
-			w.Write([]byte(fmt.Sprintf("%s", userTasks[i])))
+			//w.Write([]byte(fmt.Sprintf("%s", userTasks[i])))
 			}
 			
 		}
@@ -337,12 +339,12 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! \n", err)
+			fmt.Printf("Something went wrong! %s\n", err)
 			return
 		}
 		// For any other type of error, return a bad request status
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	sessionToken := c.Value
@@ -353,12 +355,12 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized\n", err)
+			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized %s\n", err)
 			return
 		}
 		// For any other type of error, return a bad request status
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong!  In request of cookies of userid\n", err)
+		fmt.Printf("Something went wrong!  In request of cookies of userid %s\n", err)
 		return
 	}
 	sessionUserid := UserId.Value
@@ -369,13 +371,13 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// If there is an error fetching from cache, return an internal server error status
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	if response == nil {
 		// If the session token is not present in cache, return an unauthorized error
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	
@@ -385,7 +387,7 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 	if err1 != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! \n", err1)
+		fmt.Printf("Something went wrong! %s\n", err1)
 		return
 	}
 
@@ -421,12 +423,12 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! \n", err)
+			fmt.Printf("Something went wrong! %s\n", err)
 			return
 		}
 		// For any other type of error, return a bad request status
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	sessionToken := c.Value
@@ -437,12 +439,12 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
 			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized\n", err)
+			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized %s\n", err)
 			return
 		}
 		// For any other type of error, return a bad request status
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong!  In request of cookies of userid\n", err)
+		fmt.Printf("Something went wrong!  In request of cookies of userid %s\n", err)
 		return
 	}
 	sessionUserid := UserId.Value
@@ -453,13 +455,13 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// If there is an error fetching from cache, return an internal server error status
 		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	if response == nil {
 		// If the session token is not present in cache, return an unauthorized error
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n", err)
+		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
 	
@@ -469,7 +471,7 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 	if err1 != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! \n", err1)
+		fmt.Printf("Something went wrong! %s\n", err1)
 		return
 	}
 
