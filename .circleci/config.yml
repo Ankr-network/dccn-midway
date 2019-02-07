@@ -18,7 +18,7 @@ jobs:
             sudo ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
       - run:
           name: "Log in to AWS ECR"
-          command: eval $(aws ecr get-login --no-include-email --region us-west-2)
+          command: eval $(aws ecr get-login --no-include-email --region $AWS_REGION)
       - run:
           name: "Build & Push Docker Image"
           command: |
