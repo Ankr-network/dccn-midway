@@ -20,5 +20,5 @@ FROM alpine
 
 COPY --from=compiler /go/bin/dccn-midway /usr/local/bin/dccn-midway
 RUN ln -s /usr/local/bin/dccn-midway /dccn-midway
-
+CMD start.sh
 CMD ["dccn-midway","version"]
