@@ -1,0 +1,35 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: midway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: midway
+  template:
+    metadata:
+      labels:
+        app: midway
+    spec:
+        containers:
+        - name: app-dccn-midway
+          image: 815280425737.dkr.ecr.us-west-2.amazonaws.com/dccn-midway:feat
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 50051
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: midway
+  labels:
+    app: midway
+spec:
+  ports:
+    - port: 50051
+      targetPort: 50051
+      protocol: TCP
+  selector:
+    app: midway
+  type: LoadBalancer
