@@ -15,6 +15,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const ENDPOINT = "client-dev.dccn.ankr.network:50051"
+
 var users = map[string]string{
 	"user1": "password1",
 	"user2": "password2",
@@ -41,7 +43,7 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 	// Get the expected password from our in memory map
 	//expectedPassword, ok := users[creds.Username]
 
-	conn, err := grpc.Dial("client-dev.dccn.ankr.network:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -105,7 +107,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	// Get the expected password from our in memory map
 	//expectedPassword, ok := users[creds.Username]
 
-	conn, err := grpc.Dial("client-dev.dccn.ankr.network:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -191,7 +193,7 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 
 	// Now, create a new session token for the current user
 
-	conn, err := grpc.Dial("client-dev.dccn.ankr.network:50051", grpc.WithInsecure())
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}

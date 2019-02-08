@@ -1,26 +1,27 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
-	"google.golang.org/grpc"
-	taskmgr "github.com/Ankr-network/dccn-common/protos/taskmgr/v1/grpc"
+
 	common_proto "github.com/Ankr-network/dccn-common/protos/common"
-	"context"
+	taskmgr "github.com/Ankr-network/dccn-common/protos/taskmgr/v1/grpc"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 	metadata "google.golang.org/grpc/metadata"
 )
 
 type Task struct {
-	UserId string `json:"UserId"`
-	Name string `json:"Name"`
-	Id string `json:"ID"`
-    Type string `json:"Type"`
-    Image string `json:"Image"`
-	Replica int32 `json:"Replica"`
-	DataCenter string `json:"DataCenter"`
+	UserId       string `json:"UserId"`
+	Name         string `json:"Name"`
+	Id           string `json:"ID"`
+	Type         string `json:"Type"`
+	Image        string `json:"Image"`
+	Replica      int32  `json:"Replica"`
+	DataCenter   string `json:"DataCenter"`
 	DataCenterId string `json:"DataCenterId"`
 }
 
@@ -77,7 +78,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
-	
+
 	var Heretask Task
 	// Get the JSON body and decode into credentials
 	err1 := json.NewDecoder(r.Body).Decode(&Heretask)
@@ -89,10 +90,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info(Heretask)
-
-	url := "client-dev.dccn.ankr.network"
-	port := "50051"
-	conn, err := grpc.Dial(url+":"+port, grpc.WithInsecure())
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -115,7 +113,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 	tcrq := taskmgr.CreateTaskRequest{
 		UserId: sessionUserid,
-		Task: &task,
+		Task:   &task,
 	}
 	tcrp, err := dc.CreateTask(ctx, &tcrq)
 	if err != nil {
@@ -129,10 +127,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		log.Info("Fail to create task. \n", tcrp.Error)
 	}
 
-
 }
-
-
 
 func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
@@ -183,7 +178,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
-	
+
 	var Heretask Task
 	// Get the JSON body and decode into credentials
 	err1 := json.NewDecoder(r.Body).Decode(&Heretask)
@@ -195,10 +190,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Info(Heretask)
-
-	url := "client-dev.dccn.ankr.network"
-	port := "50051"
-	conn, err := grpc.Dial(url+":"+port, grpc.WithInsecure())
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -221,7 +213,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 	tcrq := taskmgr.UpdateTaskRequest{
 		UserId: sessionUserid,
-		Task: &task,
+		Task:   &task,
 	}
 	Err2, err := dc.UpdateTask(ctx, &tcrq)
 	if err != nil {
@@ -234,12 +226,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 		log.Info("Fail to create task. \n")
 	}
 
-
 }
-
-
-
-
 
 func ListTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
@@ -291,9 +278,7 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := "client-dev.dccn.ankr.network"
-	port := "50051"
-	conn, err := grpc.Dial(url+":"+port, grpc.WithInsecure())
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -318,18 +303,15 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 		} else {
 			log.Println(len(userTasks), "tasks belongs to ", sessionUserid)
 			w.Write([]byte(fmt.Sprintf("%s", userTasks)))
-			for i := range userTasks{
-			log.Println(userTasks[i])
-			//w.Write([]byte(fmt.Sprintf("%s", userTasks[i])))
+			for i := range userTasks {
+				log.Println(userTasks[i])
+				//w.Write([]byte(fmt.Sprintf("%s", userTasks[i])))
 			}
-			
+
 		}
 	}
 
 }
-
-
-
 
 func CancelTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
@@ -380,7 +362,7 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
-	
+
 	var NewRequest Request
 	// Get the JSON body and decode into credentials
 	err1 := json.NewDecoder(r.Body).Decode(&NewRequest)
@@ -391,9 +373,7 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := "client-dev.dccn.ankr.network"
-	port := "50051"
-	conn, err := grpc.Dial(url+":"+port, grpc.WithInsecure())
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -412,7 +392,7 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 		log.Println(err.Error())
 	} else {
 		log.Println("CancelTask Ok")
-}
+	}
 }
 
 func PurgeTask(w http.ResponseWriter, r *http.Request) {
@@ -464,7 +444,7 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
-	
+
 	var NewRequest Request
 	// Get the JSON body and decode into credentials
 	err1 := json.NewDecoder(r.Body).Decode(&NewRequest)
@@ -475,9 +455,7 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := "client-dev.dccn.ankr.network"
-	port := "50051"
-	conn, err := grpc.Dial(url+":"+port, grpc.WithInsecure())
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -496,5 +474,5 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 		log.Println(err.Error())
 	} else {
 		log.Println("PurgeTask Ok")
-}
+	}
 }
