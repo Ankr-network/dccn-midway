@@ -67,3 +67,37 @@ Hit the refresh route,`session_token`'s length will be extended by 120s:
 ```
 POST http://localhost:8000/refresh
 ```
+
+## How to build it in k8s:
+
+First, one need to deploy a redis-master service:
+```
+kubectl create -f https://k8s.io/examples/application/guestbook/redis-master-deployment.yaml
+```
+
+Then create a Redis service:
+```
+kubectl create -f https://k8s.io/examples/application/guestbook/redis-master-service.yaml
+```
+Finally, create the dccn-midway service:
+```
+cd dccn-midway/k8s
+kubectl create -f dccn-midway.yaml
+```
+
+## How to test it in local:
+To run the test, one must start a [redis server] on his/her local machine before the test:
+
+```sh
+redis-server
+```
+
+Next, start the Go application:
+
+```sh
+go build
+./dccn-midway
+```
+Then, open a new terminal
+go test -v
+it will start to do the test.
