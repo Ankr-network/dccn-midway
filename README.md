@@ -1,8 +1,6 @@
 # dccn-midway
 
-
-
-## How to build it in local:
+## How to build it in local
 
 To run this application, start a [redis server] on your local machine:
 
@@ -71,6 +69,7 @@ POST http://localhost:8000/refresh
 ## How to build it in k8s:
 
 First, one need to deploy a redis-master service:
+
 ```
 kubectl create -f https://k8s.io/examples/application/guestbook/redis-master-deployment.yaml
 ```

@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"google.golang.org/grpc"
+
 	usermgr "github.com/Ankr-network/dccn-common/protos/usermgr/v1/grpc"
+	"google.golang.org/grpc"
+
 	//"github.com/satori/go.uuid"
 	"context"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -21,7 +24,7 @@ var users = map[string]string{
 type Credentials struct {
 	Password string `json:"password"`
 	Username string `json:"username"`
-	Name string `json:"name"`
+	Name     string `json:"name"`
 	Nickname string `json:"nickname"`
 }
 
@@ -56,12 +59,12 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Printf("Something went wrong! %s\n", err)
 		return
-	} else {
-		log.Printf("login Success: %s\n", rsp.Token)
 	}
-	if rsp.Error != nil{
+
+	log.Printf("login Success: %s\n", rsp.Token)
+	if rsp.Error != nil {
 		fmt.Printf("Something went wrong! In hub %s\n", rsp.Error)
-			return
+		return
 	}
 	//u, err := uuid.NewV4()
 	sessionToken := rsp.Token
@@ -127,7 +130,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Printf("Something went wrong! \n")
-		return
 	} else {
 		log.Printf("Register Success!")
 	}
@@ -188,10 +190,6 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	// The code uptil this point is the same as the first part of the `Welcome` route
 
 	// Now, create a new session token for the current user
-	
-	
-	
-	
 
 	conn, err := grpc.Dial("client-dev.dccn.ankr.network:50051", grpc.WithInsecure())
 	if err != nil {
@@ -209,13 +207,12 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Printf("Something went wrong! \n %s", err)
 		return
-	} else {
-		log.Printf("Refresh Success!")
 	}
 
-newSessionToken := sessionToken
+	log.Printf("Refresh Success!")
+	newSessionToken := sessionToken
 
-	_, err = cache.Do("SETEX", newSessionToken, "120", fmt.Sprintf("%s",response))
+	_, err = cache.Do("SETEX", newSessionToken, "120", fmt.Sprintf("%s", response))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -227,12 +224,12 @@ newSessionToken := sessionToken
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	
+
 	// Set the new token as the users `session_token` cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session_token",
 		Value:   newSessionToken,
 		Expires: time.Now().Add(120 * time.Second),
 	})
-	
+
 }
