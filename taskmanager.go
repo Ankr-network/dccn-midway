@@ -32,52 +32,13 @@ type Request struct {
 func CreateTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Create Tasks")
-	c, err := r.Cookie("session_token")
+	sessionToken, sessionUserid, err := getSessionValues(w, r)
 	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! %s\n", err)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! %s\n", err)
+		//The error has been sent in func getSeessionValues
 		return
 	}
-	sessionToken := c.Value
 	log.Info(sessionToken)
-
-	UserId, err := r.Cookie("user_id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized %s\n", err)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong!  In request of cookies of userid %s\n", err)
-		return
-	}
-	sessionUserid := UserId.Value
 	log.Info(sessionUserid)
-
-	// We then get the name of the user from our cache, where we set the session token
-	response, err := cache.Do("GET", sessionToken)
-	if err != nil {
-		// If there is an error fetching from cache, return an internal server error status
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("Something went wrong! %s \n", err)
-		return
-	}
-	if response == nil {
-		// If the session token is not present in cache, return an unauthorized error
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! %s\n", err)
-		return
-	}
 
 	var Heretask Task
 	// Get the JSON body and decode into credentials
@@ -132,52 +93,12 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Update Tasks")
-	c, err := r.Cookie("session_token")
+	sessionToken, sessionUserid, err := getSessionValues(w, r)
 	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! %s\n", err)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
-	sessionToken := c.Value
 	log.Info(sessionToken)
-
-	UserId, err := r.Cookie("user_id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized %s\n", err)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong!  In request of cookies of userid %s\n", err)
-		return
-	}
-	sessionUserid := UserId.Value
 	log.Info(sessionUserid)
-
-	// We then get the name of the user from our cache, where we set the session token
-	response, err := cache.Do("GET", sessionToken)
-	if err != nil {
-		// If there is an error fetching from cache, return an internal server error status
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("Something went wrong! %s\n", err)
-		return
-	}
-	if response == nil {
-		// If the session token is not present in cache, return an unauthorized error
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! %s\n", err)
-		return
-	}
 
 	var Heretask Task
 	// Get the JSON body and decode into credentials
@@ -231,52 +152,12 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 func ListTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Task Lists")
-	c, err := r.Cookie("session_token")
+	sessionToken, sessionUserid, err := getSessionValues(w, r)
 	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! %s\n", err)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
-	sessionToken := c.Value
 	log.Info(sessionToken)
-
-	UserId, err := r.Cookie("user_id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized %s\n", err)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong!  In request of cookies of userid %s\n", err)
-		return
-	}
-	sessionUserid := UserId.Value
 	log.Info(sessionUserid)
-
-	// We then get the name of the user from our cache, where we set the session token
-	response, err := cache.Do("GET", sessionToken)
-	if err != nil {
-		// If there is an error fetching from cache, return an internal server error status
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("Something went wrong! %s\n", err)
-		return
-	}
-	if response == nil {
-		// If the session token is not present in cache, return an unauthorized error
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! %s\n", err)
-		return
-	}
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
@@ -316,52 +197,12 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 func CancelTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Cancel Task")
-	c, err := r.Cookie("session_token")
+	sessionToken, sessionUserid, err := getSessionValues(w, r)
 	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! %s\n", err)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
-	sessionToken := c.Value
 	log.Info(sessionToken)
-
-	UserId, err := r.Cookie("user_id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized %s\n", err)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong!  In request of cookies of userid %s\n", err)
-		return
-	}
-	sessionUserid := UserId.Value
 	log.Info(sessionUserid)
-
-	// We then get the name of the user from our cache, where we set the session token
-	response, err := cache.Do("GET", sessionToken)
-	if err != nil {
-		// If there is an error fetching from cache, return an internal server error status
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("Something went wrong! %s\n", err)
-		return
-	}
-	if response == nil {
-		// If the session token is not present in cache, return an unauthorized error
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! %s\n", err)
-		return
-	}
 
 	var NewRequest Request
 	// Get the JSON body and decode into credentials
@@ -398,52 +239,12 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 func PurgeTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Purge Task")
-	c, err := r.Cookie("session_token")
+	sessionToken, sessionUserid, err := getSessionValues(w, r)
 	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! %s\n", err)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! %s\n", err)
 		return
 	}
-	sessionToken := c.Value
 	log.Info(sessionToken)
-
-	UserId, err := r.Cookie("user_id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Printf("Something went wrong! In request of cookies of userid: Unauthorized %s\n", err)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong!  In request of cookies of userid %s\n", err)
-		return
-	}
-	sessionUserid := UserId.Value
 	log.Info(sessionUserid)
-
-	// We then get the name of the user from our cache, where we set the session token
-	response, err := cache.Do("GET", sessionToken)
-	if err != nil {
-		// If there is an error fetching from cache, return an internal server error status
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Printf("Something went wrong! %s\n", err)
-		return
-	}
-	if response == nil {
-		// If the session token is not present in cache, return an unauthorized error
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! %s\n", err)
-		return
-	}
 
 	var NewRequest Request
 	// Get the JSON body and decode into credentials
