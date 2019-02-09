@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"testing"
-
+	"time"
 	common_proto "github.com/Ankr-network/dccn-common/protos/common"
 )
 
@@ -16,6 +16,39 @@ import (
 	Address string `json:"address"`
 	Age int `json:"age"`
 }*/
+
+func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskStatus, taskid string)(bool){
+	t.Log("Checking the status of task ", taskid)
+	var jsonStrList = []byte(`{}`)
+	reqList, err := http.NewRequest("POST", urlList, bytes.NewBuffer(jsonStrList))
+	reqList.Header.Set("X-Custom-Header", "myvalue")
+	reqList.Header.Set("Content-Type", "application/json")
+	respList, err := client.Do(reqList)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+		return false
+	}
+	defer respList.Body.Close()
+	newbody := make([]*common_proto.Task, 0)
+	bytebody, _ := ioutil.ReadAll(respList.Body)
+	_ = json.Unmarshal(bytebody, &newbody)
+	//t.Log(newbody)
+	for i := range newbody {
+		if newbody[i].Id == taskid {
+			if newbody[i].Status == target {
+				t.Log("Find the task and check the status of task, it is the same!", taskid)
+				return false
+			}
+			t.Log("Find the task and check the status of task, it is not the same!", taskid)
+			return false
+		}
+	}
+	t.Log("Did not find the taskid ", taskid)
+	return false
+}
+
+
 
 func TestCreateTask(t *testing.T) {
 
@@ -71,6 +104,12 @@ func TestCreateTask(t *testing.T) {
 	t.Log("Create Task Body:", string(body))
 	sbody := string(body)
 
+	time.Sleep(500)
+
+	if !checkIDstatus(t, client, common_proto.TaskStatus_CANCEL, sbody){
+		t.Error("Tasks established faliure!")
+	}
+	//t.Log("Create Task Successfull!")
 	pb := &Request{TaskId: sbody}
 	jsonStrPurge, err := json.Marshal(pb)
 	if err != nil {
@@ -172,6 +211,8 @@ func TestUpdateTask(t *testing.T) {
 	if respUpdate.Status != "200 OK" {
 		t.Error("Update Status Error! Cannot update the task")
 	}
+
+	time.Sleep(500)
 
 }
 
@@ -534,7 +575,7 @@ func TestCancelTask(t *testing.T) {
 	_ = json.Unmarshal(bytebody, &newbody)
 	for i := range newbody {
 		if newbody[i].Id == sbody {
-			if newbody[i].Status != common_proto.TaskStatus_CANCEL {
+			if checkIDstatus(t, client, common_proto.TaskStatus_CANCEL, sbody) {
 				t.Error("Error! Fail to cancel the task")
 			}
 		}

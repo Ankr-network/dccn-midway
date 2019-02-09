@@ -183,7 +183,8 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 			log.Printf("no tasks belongs to %s", sessionUserid)
 		} else {
 			log.Println(len(userTasks), "tasks belongs to ", sessionUserid)
-			w.Write([]byte(fmt.Sprintf("%s", userTasks)))
+			jsonTaskList, _ := json.Marshal(userTasks)
+			w.Write(jsonTaskList)
 			for i := range userTasks {
 				log.Println(userTasks[i])
 				//w.Write([]byte(fmt.Sprintf("%s", userTasks[i])))
