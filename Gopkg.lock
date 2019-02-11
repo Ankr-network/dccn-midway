@@ -9,6 +9,7 @@
     "protos/common",
     "protos/taskmgr/v1/grpc",
     "protos/usermgr/v1/grpc",
+    "protos/dcmgr/v1/grpc",
   ]
   pruneopts = "UT"
   revision = "bf330f77b4070e1fa0f8c72ad5727adf3732f68e"
