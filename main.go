@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -25,7 +26,7 @@ func main() {
 }
 
 func initCache() {
-	conn, err := redis.DialURL("redis://localhost:6379")
+	conn, err := redis.DialURL("redis://redis-master:6379")
 	if err != nil {
 		panic(err)
 	}
