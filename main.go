@@ -10,7 +10,7 @@ import (
 var cache redis.Conn
 
 func main() {
-	initCache()
+//	initCache()
 	// "Signin" and "Signup" are handler that we will implement
 	http.HandleFunc("/login", Signin)
 	http.HandleFunc("/signup", Signup)
@@ -21,14 +21,7 @@ func main() {
 	http.HandleFunc("/list", ListTask)
 	http.HandleFunc("/delete", CancelTask)
 	http.HandleFunc("/purge", PurgeTask)
+	http.HandleFunc("/dclist", DataCenterList)
 	// start the server on port 8000
 	log.Fatal(http.ListenAndServe(":8000", nil))
-}
-
-func initCache() {
-	conn, err := redis.DialURL("redis://redis-master:6379")
-	if err != nil {
-		panic(err)
-	}
-	cache = conn
 }

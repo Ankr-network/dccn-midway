@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
+	"errors"
 	usermgr "github.com/Ankr-network/dccn-common/protos/usermgr/v1/grpc"
 	"google.golang.org/grpc"
 
@@ -70,28 +70,29 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 	}
 	//u, err := uuid.NewV4()
 	sessionToken := rsp.Token
-	sessionUserid := rsp.UserId
+	w.Write([]byte(fmt.Sprintf("%s", sessionToken)))
+	//sessionUserid := rsp.UserId
 	// Set the token in the cache, along with the user whom it represents
 	// The token has an expiry time of 120 seconds
-	_, err = cache.Do("SETEX", sessionToken, "120", creds.Username)
-	if err != nil {
+	//_, err = cache.Do("SETEX", sessionToken, "120", creds.Username)
+	//if err != nil {
 		// If there is an error in setting the cache, return an internal server error
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	//	w.WriteHeader(http.StatusInternalServerError)
+	//	return
+	//}
 
 	// Finally, we set the client cookie for "session_token" as the session token we just generated
 	// we also set an expiry time of 120 seconds, the same as the cache
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
-		Value:   sessionToken,
-		Expires: time.Now().Add(120 * time.Second),
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:    "user_id",
-		Value:   sessionUserid,
-		Expires: time.Now().Add(120 * time.Second),
-	})
+	//http.SetCookie(w, &http.Cookie{
+	//	Name:    "session_token",
+	//	Value:   sessionToken,
+	//	Expires: time.Now().Add(120 * time.Second),
+	//})
+	//http.SetCookie(w, &http.Cookie{
+	//	Name:    "user_id",
+	//	Value:   sessionUserid,
+//		Expires: time.Now().Add(120 * time.Second),
+//	})
 }
 
 func Signup(w http.ResponseWriter, r *http.Request) {
@@ -131,7 +132,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	_, err = userClient.Register(context.Background(), user)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n")
+		log.Printf("Something went wrong! \n")
 	} else {
 		log.Printf("Register Success!")
 	}
@@ -139,7 +140,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 func Welcome(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
-	c, err := r.Cookie("session_token")
+	c, err := sessionTokenValue(w, r)
 	if err != nil {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
@@ -150,8 +151,8 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	sessionToken := c.Value
-
+	sessionToken := c
+/*
 	// We then get the name of the user from our cache, where we set the session token
 	response, err := cache.Do("GET", sessionToken)
 	if err != nil {
@@ -163,22 +164,22 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 		// If the session token is not present in cache, return an unauthorized error
 		w.WriteHeader(http.StatusUnauthorized)
 		return
-	}
+	}*/
 	// Finally, return the welcome message to the user
-	w.Write([]byte(fmt.Sprintf("Welcome %s!", response)))
+	w.Write([]byte(fmt.Sprintf("Welcome %s!", sessionToken)))
 }
 
 func Refresh(w http.ResponseWriter, r *http.Request) {
-	c, err := r.Cookie("session_token")
+	c, err := sessionTokenValue(w, r)
 	if err != nil {
-		if err == http.ErrNoCookie {
+		if err == errors.New("Error! No sessionToken") {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	sessionToken := c.Value
+	sessionToken := c
 
 	response, err := cache.Do("GET", sessionToken)
 	if err != nil {
