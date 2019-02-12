@@ -23,5 +23,5 @@ func main() {
 	http.HandleFunc("/purge", PurgeTask)
 	http.HandleFunc("/dclist", DataCenterList)
 	// start the server on port 8000
-	log.Fatal(http.ListenAndServe(":8000", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
