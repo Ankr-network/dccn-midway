@@ -35,6 +35,9 @@ func sessionTokenValue(w http.ResponseWriter, r *http.Request)(string, error) {
 	if sessionTokenarray == nil {
 		return "", errors.New("Error! No sessionToken")
 	}
+	if len(sessionTokenarray) == 1 {
+		return "", errors.New("Error! Invalid sessionToken syntax!")
+	}
 	sessionToken := sessionTokenarray[1]
 	// We then get the name of the user from our cache, where we set the session token
 	/*response, err := cache.Do("GET", sessionToken)
