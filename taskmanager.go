@@ -97,12 +97,11 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Update Tasks")
-	sessionToken, sessionUserid, err := getSessionValues(w, r)
+	sessionToken, err:= sessionTokenValue(w, r)
 	if err != nil {
 		return
 	}
 	log.Info(sessionToken)
-	log.Info(sessionUserid)
 
 	var Heretask Task
 	// Get the JSON body and decode into credentials
@@ -129,7 +128,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
 	task := common_proto.Task{
-		UserId:       sessionUserid,
+		UserId:       "sessionUserid",
 		Name:         Heretask.Name,
 		Type:         Heretask.Type,
 		Image:        Heretask.Image,
@@ -137,7 +136,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 		DataCenterId: Heretask.DataCenterId,
 	}
 	tcrq := taskmgr.UpdateTaskRequest{
-		UserId: sessionUserid,
+		UserId: "sessionUserid",
 		Task:   &task,
 	}
 	Err2, err := dc.UpdateTask(ctx, &tcrq)
@@ -156,12 +155,11 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 func ListTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Task Lists")
-	sessionToken, sessionUserid, err := getSessionValues(w, r)
+	sessionToken, err := sessionTokenValue(w, r)
 	if err != nil {
 		return
 	}
 	log.Info(sessionToken)
-	log.Info(sessionUserid)
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
@@ -179,14 +177,14 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	userTasks := make([]*common_proto.Task, 0)
-	if rsp, err := dc.TaskList(tokenContext, &taskmgr.ID{UserId: sessionUserid}); err != nil {
+	if rsp, err := dc.TaskList(tokenContext, &taskmgr.ID{UserId: "sessionUserid"}); err != nil {
 		log.Fatal(err.Error())
 	} else {
 		userTasks = append(userTasks, rsp.Tasks...)
 		if len(userTasks) == 0 {
-			log.Printf("no tasks belongs to %s", sessionUserid)
+			log.Printf("no tasks belongs to You!")
 		} else {
-			log.Println(len(userTasks), "tasks belongs to ", sessionUserid)
+			log.Println(len(userTasks), "tasks belongs to You!")
 			jsonTaskList, _ := json.Marshal(userTasks)
 			w.Write(jsonTaskList)
 			for i := range userTasks {

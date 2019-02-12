@@ -5,17 +5,6 @@ import (
 	"strings"
 )
 
-func getSessionValues(w http.ResponseWriter, r *http.Request)(string, string, error) {
-	sessionToken, err := sessionTokenValue(w, r)
-	if err != nil{
-		return "", "", err
-	}
-	sessionID, err := sessionIdValue(w, r)
-	if err != nil{
-		return "", "", err
-	}
-	return sessionToken, sessionID, nil
-}
 
 func sessionTokenValue(w http.ResponseWriter, r *http.Request)(string, error) {
 	// We can obtain the session token from the requests cookies, which come with every request
@@ -53,21 +42,4 @@ func sessionTokenValue(w http.ResponseWriter, r *http.Request)(string, error) {
 	}*/
 	// Finally, return the welcome message to the user
 	return sessionToken, nil
-}
-
-
-func sessionIdValue(w http.ResponseWriter, r *http.Request)(string, error){
-	UserId, err := r.Cookie("user_id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			return "", err
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
-		return "", err
-	}
-	sessionUserid := UserId.Value
-	return sessionUserid, nil
 }

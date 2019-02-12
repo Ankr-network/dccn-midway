@@ -48,7 +48,30 @@ func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskSt
 	return false
 }
 
+func ClientLogin(t *testing.T, client *http.Client)(string){
 
+	var jsonStrlogin = []byte(`{"username":"testuser@mailinator.com", "password":"1111"}`)
+	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
+	reqlogin.Header.Set("X-Custom-Header", "myvalue")
+	reqlogin.Header.Set("Content-Type", "application/json")
+
+	resplogin, err := client.Do(reqlogin)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+	}
+	sessionToken, _ := ioutil.ReadAll(resplogin.Body)
+	t.Log("Sessiontoday:", string(sessionToken))
+	sessionTokenarray := "bearer " + string(sessionToken)
+
+	defer resplogin.Body.Close()
+
+	t.Log("Signin response Status:", resplogin.Status)
+	if resplogin.Status != "200 OK" {
+		t.Error("login Status Error!")
+	}
+	return sessionTokenarray
+}
 
 func TestCreateTask(t *testing.T) {
 
@@ -59,23 +82,7 @@ func TestCreateTask(t *testing.T) {
 	}
 
 	t.Log("URL for Create Task:>", urlCreate)
-
-	var jsonStrlogin = []byte(`{"username":"xiaowu", "password":"1111"}`)
-	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
-	reqlogin.Header.Set("X-Custom-Header", "myvalue")
-	reqlogin.Header.Set("Content-Type", "application/json")
-
-	resplogin, err := client.Do(reqlogin)
-	if err != nil {
-		//panic(err)
-		t.Error("err")
-	}
-	defer resplogin.Body.Close()
-
-	t.Log("Signin response Status:", resplogin.Status)
-	if resplogin.Status != "200 OK" {
-		t.Error("login Status Error!")
-	}
+	sessionTokenarray := ClientLogin(t, client)
 
 	var jsonStrCreate = []byte(`{"UserId": "123",
 	"Name": "TestforCreatetask",
@@ -86,8 +93,7 @@ func TestCreateTask(t *testing.T) {
 	"DataCenter": "Datacenter",
 	"DataCenterId": "10"}`)
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
-	reqCreate.Header.Set("X-Custom-Header", "myvalue")
-	reqCreate.Header.Set("Content-Type", "application/json")
+	reqCreate.Header.Add("Authorization", sessionTokenarray)
 
 	respCreate, err := client.Do(reqCreate)
 	if err != nil {
@@ -116,8 +122,7 @@ func TestCreateTask(t *testing.T) {
 		t.Error("could not marshal JSON")
 	}
 	reqPurge, err := http.NewRequest("POST", urlPurge, bytes.NewBuffer(jsonStrPurge))
-	reqPurge.Header.Set("X-Custom-Header", "myvalue")
-	reqPurge.Header.Set("Content-Type", "application/json")
+	reqPurge.Header.Add("Authorization", sessionTokenarray)
 
 	respPurge, err := client.Do(reqPurge)
 	if err != nil {
@@ -171,22 +176,7 @@ func TestUpdateTask(t *testing.T) {
 	}
 	t.Log("URL for Update Task:>", urlUpdate)
 
-	var jsonStrlogin = []byte(`{"username":"xiaowu", "password":"1111"}`)
-	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
-	reqlogin.Header.Set("X-Custom-Header", "myvalue")
-	reqlogin.Header.Set("Content-Type", "application/json")
-
-	resplogin, err := client.Do(reqlogin)
-	if err != nil {
-		//panic(err)
-		t.Error("err")
-	}
-	defer resplogin.Body.Close()
-
-	t.Log("Signin response Status:", resplogin.Status)
-	if resplogin.Status != "200 OK" {
-		t.Error("login Status Error!")
-	}
+	sessionTokenarray := ClientLogin(t, client)
 
 	var jsonStrUpdate = []byte(`{"UserId": "123",
 	"Name": "xiaowu",
@@ -197,8 +187,7 @@ func TestUpdateTask(t *testing.T) {
 	"DataCenter": "aslkdfjas",
 	"DataCenterId": "10"}`)
 	reqUpdate, err := http.NewRequest("POST", urlUpdate, bytes.NewBuffer(jsonStrUpdate))
-	reqUpdate.Header.Set("X-Custom-Header", "myvalue")
-	reqUpdate.Header.Set("Content-Type", "application/json")
+	reqUpdate.Header.Add("Authorization", sessionTokenarray)
 
 	respUpdate, err := client.Do(reqUpdate)
 	if err != nil {
@@ -256,28 +245,11 @@ func TestListTask(t *testing.T) {
 	}
 
 	t.Log("URL for List Task:>", urlList)
-
-	var jsonStrlogin = []byte(`{"username":"xiaowu", "password":"1111"}`)
-	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
-	reqlogin.Header.Set("X-Custom-Header", "myvalue")
-	reqlogin.Header.Set("Content-Type", "application/json")
-
-	resplogin, err := client.Do(reqlogin)
-	if err != nil {
-		//panic(err)
-		t.Error("err")
-	}
-	defer resplogin.Body.Close()
-
-	t.Log("Signin response Status:", resplogin.Status)
-	if resplogin.Status != "200 OK" {
-		t.Error("login Status Error!")
-	}
+	sessionTokenarray := ClientLogin(t, client)
 
 	var jsonStrList = []byte(`{}`)
 	reqList, err := http.NewRequest("POST", urlList, bytes.NewBuffer(jsonStrList))
-	reqList.Header.Set("X-Custom-Header", "myvalue")
-	reqList.Header.Set("Content-Type", "application/json")
+	reqList.Header.Add("Authorization", sessionTokenarray)
 
 	respList, err := client.Do(reqList)
 	if err != nil {
@@ -327,24 +299,7 @@ func TestPurgeTask(t *testing.T) {
 	}
 
 	t.Log("URL for Create Task:>", urlCreate)
-
-	var jsonStrlogin = []byte(`{"username":"xiaowu", "password":"1111"}`)
-	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
-	reqlogin.Header.Set("X-Custom-Header", "myvalue")
-	reqlogin.Header.Set("Content-Type", "application/json")
-
-	resplogin, err := client.Do(reqlogin)
-	if err != nil {
-		//panic(err)
-		t.Error("err")
-	}
-	defer resplogin.Body.Close()
-
-	t.Log("Signin response Status:", resplogin.Status)
-	if resplogin.Status != "200 OK" {
-		t.Error("login Status Error!")
-	}
-
+	sessionTokenarray := ClientLogin(t, client)
 	var jsonStrCreate = []byte(`{"UserId": "123",
 	"Name": "TestforPurgetask",
 	"Id": "12",
@@ -354,8 +309,7 @@ func TestPurgeTask(t *testing.T) {
 	"DataCenter": "Datacenter",
 	"DataCenterId": "10"}`)
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
-	reqCreate.Header.Set("X-Custom-Header", "myvalue")
-	reqCreate.Header.Set("Content-Type", "application/json")
+	reqCreate.Header.Add("Authorization", sessionTokenarray)
 
 	respCreate, err := client.Do(reqCreate)
 	if err != nil {
@@ -378,8 +332,7 @@ func TestPurgeTask(t *testing.T) {
 		t.Error("could not marshal JSON")
 	}
 	reqPurge, err := http.NewRequest("POST", urlPurge, bytes.NewBuffer(jsonStrPurge))
-	reqPurge.Header.Set("X-Custom-Header", "myvalue")
-	reqPurge.Header.Set("Content-Type", "application/json")
+	reqPurge.Header.Add("Authorization", sessionTokenarray)
 
 	respPurge, err := client.Do(reqPurge)
 	if err != nil {
@@ -414,23 +367,7 @@ func TestPurgeTaskDoublePurge(t *testing.T) { //No man ever purges in the same t
 	client := &http.Client{
 		Jar: cookieJar,
 	}
-
-	var jsonStrlogin = []byte(`{"username":"xiaowu", "password":"1111"}`)
-	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
-	reqlogin.Header.Set("X-Custom-Header", "myvalue")
-	reqlogin.Header.Set("Content-Type", "application/json")
-
-	resplogin, err := client.Do(reqlogin)
-	if err != nil {
-		//panic(err)
-		t.Error("err")
-	}
-	defer resplogin.Body.Close()
-
-	t.Log("Signin response Status:", resplogin.Status)
-	if resplogin.Status != "200 OK" {
-		t.Error("login Status Error!")
-	}
+	sessionTokenarray := ClientLogin(t, client)
 
 	var jsonStrCreate = []byte(`{"UserId": "123",
 	"Name": "TestforPurgetask",
@@ -465,8 +402,7 @@ func TestPurgeTaskDoublePurge(t *testing.T) { //No man ever purges in the same t
 		t.Error("could not marshal JSON")
 	}
 	reqPurge, err := http.NewRequest("POST", urlPurge, bytes.NewBuffer(jsonStrPurge))
-	reqPurge.Header.Set("X-Custom-Header", "myvalue")
-	reqPurge.Header.Set("Content-Type", "application/json")
+	reqPurge.Header.Add("Authorization", sessionTokenarray)
 
 	respPurge, err := client.Do(reqPurge)
 	if err != nil {

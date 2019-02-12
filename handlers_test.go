@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ADDRESS = "http://localhost:8000"
+	ADDRESS = "https://midway-dev.dccn.ankr.network"
 )
 
 var (
@@ -32,7 +32,7 @@ func TestSignin(t *testing.T) {
 	t.Log("URL for login:>", urlLogin)
 	client := &http.Client{}
 
-	var jsonStrlogin = []byte(`{"username":"xiaowu", "password":"1111"}`)
+	var jsonStrlogin = []byte(`{"username":"testuser@mailinator.com", "password":"1111"}`)
 	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
 	reqlogin.Header.Set("X-Custom-Header", "myvalue")
 	reqlogin.Header.Set("Content-Type", "application/json")
@@ -58,7 +58,7 @@ func TestSigninBAD(t *testing.T) {
 	t.Log("URL for login:>", urlLogin)
 	client := &http.Client{}
 
-	var jsonStrlogin = []byte(`{"username":"xiaowu", "password":"11111"}`)
+	var jsonStrlogin = []byte(`{"username":"wronguser@mailinator.com", "password":"11111"}`)
 	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
 	reqlogin.Header.Set("X-Custom-Header", "myvalue")
 	reqlogin.Header.Set("Content-Type", "application/json")
@@ -81,10 +81,9 @@ func TestSigninBAD(t *testing.T) {
 }
 
 func TestSignup(t *testing.T) {
-	urlsignup := "http://localhost:8000/signup"
-	t.Log("URL for signup:>", urlsignup)
-	var jsonStrSignup = []byte(`{"username":"xiaowu", "password":"1111"}`)
-	reqsignup, err := http.NewRequest("POST", urlsignup, bytes.NewBuffer(jsonStrSignup))
+	t.Log("URL for signup:>", urlSignup)
+	var jsonStrSignup = []byte(`{"username":"testuser@mailinator.com", "password":"1111"}`)
+	reqsignup, err := http.NewRequest("POST", urlSignup, bytes.NewBuffer(jsonStrSignup))
 	reqsignup.Header.Set("X-Custom-Header", "myvalue")
 	reqsignup.Header.Set("Content-Type", "application/json")
 
@@ -107,7 +106,7 @@ func TestSignup(t *testing.T) {
 
 func TestSignupBad(t *testing.T) {
 	t.Log("URL for signup:>", urlSignup)
-	var jsonStrSignup = []byte(`{"username":"xiaowu", "password":"11111"}`)
+	var jsonStrSignup = []byte(`{"username":"testuser@mailinator.com", "password":"11111"}`)
 	reqsignup, err := http.NewRequest("POST", urlSignup, bytes.NewBuffer(jsonStrSignup))
 	reqsignup.Header.Set("X-Custom-Header", "myvalue")
 	reqsignup.Header.Set("Content-Type", "application/json")
