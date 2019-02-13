@@ -19,7 +19,7 @@ type Task struct {
 	UserId       string `json:"UserId"`
 	Name         string `json:"Name"`
 	Id           string `json:"ID"`
-	Type         string `json:"Type"`
+	Type         string`json:"Type"`
 	Image        string `json:"Image"`
 	Replica      int32  `json:"Replica"`
 	DataCenter   string `json:"DataCenter"`
@@ -44,20 +44,21 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 	sessionToken := c
 
-	var Heretask Task
+	Heretask := common_proto.Task{}
 	// Get the JSON body and decode into credentials
-	err1 := json.NewDecoder(r.Body).Decode(&Heretask)
-	if err1 != nil {
+	err = json.NewDecoder(r.Body).Decode(&Heretask)
+	if err != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! %s\n", err1)
+		log.Info("Something went wrong! ", err)
 		return
 	}
 
 	log.Info(Heretask)
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Info("did not connect: ", err)
+		w.WriteHeader(http.StatusUnauthorized)
 	}
 
 	defer conn.Close()
@@ -68,21 +69,22 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	task := common_proto.Task{
+	/*task := common_proto.Task{
 		UserId:       "sessionUserid",
 		Name:         Heretask.Name,
 		Type:         Heretask.Type,
 		Image:        Heretask.Image,
 		DataCenter:   Heretask.DataCenter,
 		DataCenterId: Heretask.DataCenterId,
-	}
+	}*/
 	tcrq := taskmgr.CreateTaskRequest{
 		UserId: "sessionUserid",
-		Task:   &task,
+		Task:   &Heretask,
 	}
 	tcrp, err := dc.CreateTask(ctx, &tcrq)
 	if err != nil {
 		log.Info("Error! \n", err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	if tcrp.Error == nil {
@@ -99,11 +101,13 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Update Tasks")
 	sessionToken, err:= sessionTokenValue(w, r)
 	if err != nil {
+		log.Info("Cannot Access to sessionToken!")
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	log.Info(sessionToken)
 
-	var Heretask Task
+	Heretask := common_proto.Task{}
 	// Get the JSON body and decode into credentials
 	err1 := json.NewDecoder(r.Body).Decode(&Heretask)
 	if err1 != nil {
@@ -116,7 +120,8 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	log.Info(Heretask)
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Info("did not connect: ", err)
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	defer conn.Close()
@@ -127,27 +132,29 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	task := common_proto.Task{
+	/*task := common_proto.Task{
 		UserId:       "sessionUserid",
 		Name:         Heretask.Name,
 		Type:         Heretask.Type,
 		Image:        Heretask.Image,
 		DataCenter:   Heretask.DataCenter,
 		DataCenterId: Heretask.DataCenterId,
-	}
+	}*/
 	tcrq := taskmgr.UpdateTaskRequest{
 		UserId: "sessionUserid",
-		Task:   &task,
+		Task:   &Heretask,
 	}
 	Err2, err := dc.UpdateTask(ctx, &tcrq)
 	if err != nil {
 		log.Info("Error! \n", err)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	if Err2 == nil {
 		log.Info("Task created successfully. \n")
 	} else {
 		log.Info("Fail to create task. \n")
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
 }
@@ -157,13 +164,16 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Task Lists")
 	sessionToken, err := sessionTokenValue(w, r)
 	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	log.Info(sessionToken)
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Info("did not connect: ", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	defer conn.Close()
@@ -177,24 +187,23 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	userTasks := make([]*common_proto.Task, 0)
-	if rsp, err := dc.TaskList(tokenContext, &taskmgr.ID{UserId: "sessionUserid"}); err != nil {
-		log.Fatal(err.Error())
-	} else {
-		userTasks = append(userTasks, rsp.Tasks...)
-		if len(userTasks) == 0 {
-			log.Printf("no tasks belongs to You!")
-		} else {
-			log.Println(len(userTasks), "tasks belongs to You!")
-			jsonTaskList, _ := json.Marshal(userTasks)
-			w.Write(jsonTaskList)
-			for i := range userTasks {
-				log.Println(userTasks[i])
-				//w.Write([]byte(fmt.Sprintf("%s", userTasks[i])))
-			}
-
-		}
+	rsp, err := dc.TaskList(tokenContext, &taskmgr.ID{UserId: "sessionUserid"});
+	if  err != nil {
+		log.Info(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
-
+	userTasks = append(userTasks, rsp.Tasks...)
+	if len(userTasks) == 0 {
+		log.Printf("no tasks belongs to You!")
+		return
+	}
+	log.Println(len(userTasks), "tasks belongs to You!")
+	jsonTaskList, _ := json.Marshal(userTasks)
+	w.Write(jsonTaskList)
+	for i := range userTasks {
+		log.Println(userTasks[i])
+	}
 }
 
 func CancelTask(w http.ResponseWriter, r *http.Request) {
@@ -223,7 +232,9 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Info("did not connect: ", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	defer conn.Close()
@@ -238,6 +249,7 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := dc.CancelTask(tokenContext, &taskmgr.Request{UserId: "sessionUserid", TaskId: NewRequest.TaskId}); err != nil {
 		log.Println(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
 	} else {
 		log.Println("CancelTask Ok")
 	}
@@ -259,6 +271,8 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 	var NewRequest Request
 	// Get the JSON body and decode into credentials
 	err1 := json.NewDecoder(r.Body).Decode(&NewRequest)
+	log.Info(NewRequest)
+	log.Info("Above it the new Request")
 	if err1 != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
@@ -268,7 +282,9 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Info("did not connect: ", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	defer conn.Close()
@@ -283,6 +299,7 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := dc.PurgeTask(tokenContext, &taskmgr.Request{UserId: "", TaskId: NewRequest.TaskId}); err != nil {
 		log.Println(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
 	} else {
 		log.Println("PurgeTask Ok")
 	}
@@ -304,7 +321,7 @@ func DataCenterList(w http.ResponseWriter, r *http.Request) {
 	sessionToken := c
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Info("did not connect: ", err)
 	}
 
 	defer conn.Close()
@@ -317,23 +334,22 @@ func DataCenterList(w http.ResponseWriter, r *http.Request) {
 	tokenContext, cancel := context.WithTimeout(ctx, 180*time.Second)
 	defer cancel()
 
-	userTasks := make([]*common_proto.DataCenter, 0)
-	if rsp, err := dc.DataCenterList(tokenContext, &dcmgr.DataCenterListRequest{UserId: ""}); err != nil {
-		log.Fatal(err.Error())
-	} else {
-		userTasks = append(userTasks, rsp.DcList...)
-		if len(userTasks) == 0 {
-			log.Printf("no datacenter is running now")
-		} else {
-			log.Println(len(userTasks), "datacenters is running now")
-			jsonTaskList, _ := json.Marshal(userTasks)
-			w.Write(jsonTaskList)
-			for i := range userTasks {
-				log.Println(userTasks[i])
-				//w.Write([]byte(fmt.Sprintf("%s", userTasks[i])))
-			}
-
-		}
+	Datacenters := make([]*common_proto.DataCenter, 0)
+	rsp, err := dc.DataCenterList(tokenContext, &dcmgr.DataCenterListRequest{UserId: ""});
+	if err != nil {
+		log.Info(err.Error())
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
-
+	Datacenters = append(Datacenters, rsp.DcList...)
+	if len(Datacenters) == 0 {
+		log.Printf("no datacenter is running now")
+		return
+		} 
+		log.Println(len(Datacenters), "datacenters is running now")
+		jsonDcList, _ := json.Marshal(Datacenters)
+		w.Write(jsonDcList)
+		for i := range Datacenters {
+			log.Println(Datacenters[i])
+		}
 }

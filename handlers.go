@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+	//"time"
 	"errors"
 	usermgr "github.com/Ankr-network/dccn-common/protos/usermgr/v1/grpc"
 	"google.golang.org/grpc"
@@ -40,18 +40,17 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get the expected password from our in memory map
-	//expectedPassword, ok := users[creds.Username]
-
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		log.Info("did not connect: ", err)
 	}
 	defer func(conn *grpc.ClientConn) {
 		if err := conn.Close(); err != nil {
 			log.Println(err.Error())
 		}
 	}(conn)
+
 	userClient := usermgr.NewUserMgrClient(conn)
 	fmt.Printf("username: %s \n", creds.Username)
 	fmt.Printf("password: %s \n", creds.Password)
@@ -68,31 +67,8 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Something went wrong! In hub %s\n", rsp.Error)
 		return
 	}
-	//u, err := uuid.NewV4()
 	sessionToken := rsp.Token
 	w.Write([]byte(fmt.Sprintf("%s", sessionToken)))
-	//sessionUserid := rsp.UserId
-	// Set the token in the cache, along with the user whom it represents
-	// The token has an expiry time of 120 seconds
-	//_, err = cache.Do("SETEX", sessionToken, "120", creds.Username)
-	//if err != nil {
-		// If there is an error in setting the cache, return an internal server error
-	//	w.WriteHeader(http.StatusInternalServerError)
-	//	return
-	//}
-
-	// Finally, we set the client cookie for "session_token" as the session token we just generated
-	// we also set an expiry time of 120 seconds, the same as the cache
-	//http.SetCookie(w, &http.Cookie{
-	//	Name:    "session_token",
-	//	Value:   sessionToken,
-	//	Expires: time.Now().Add(120 * time.Second),
-	//})
-	//http.SetCookie(w, &http.Cookie{
-	//	Name:    "user_id",
-	//	Value:   sessionUserid,
-//		Expires: time.Now().Add(120 * time.Second),
-//	})
 }
 
 func Signup(w http.ResponseWriter, r *http.Request) {
@@ -104,9 +80,6 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	// Get the expected password from our in memory map
-	//expectedPassword, ok := users[creds.Username]
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
@@ -152,20 +125,6 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sessionToken := c
-/*
-	// We then get the name of the user from our cache, where we set the session token
-	response, err := cache.Do("GET", sessionToken)
-	if err != nil {
-		// If there is an error fetching from cache, return an internal server error status
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if response == nil {
-		// If the session token is not present in cache, return an unauthorized error
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}*/
-	// Finally, return the welcome message to the user
 	w.Write([]byte(fmt.Sprintf("Welcome %s!", sessionToken)))
 }
 
@@ -190,10 +149,6 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	// The code uptil this point is the same as the first part of the `Welcome` route
-
-	// Now, create a new session token for the current user
-
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -213,26 +168,6 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Refresh Success!")
-	newSessionToken := sessionToken
-
-	_, err = cache.Do("SETEX", newSessionToken, "120", fmt.Sprintf("%s", response))
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Delete the older session token
-	_, err = cache.Do("DEL", sessionToken)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	// Set the new token as the users `session_token` cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
-		Value:   newSessionToken,
-		Expires: time.Now().Add(120 * time.Second),
-	})
-
+	w.Write([]byte(fmt.Sprintf("%s", sessionToken)))
 }
+ 

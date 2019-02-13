@@ -8,21 +8,45 @@ import (
 	"net/http/cookiejar"
 	"testing"
 	"time"
+	"strings"
 	common_proto "github.com/Ankr-network/dccn-common/protos/common"
 )
 
-/*type Person struct {
-	Name string `json:"name"`
-	Address string `json:"address"`
-	Age int `json:"age"`
-}*/
-
-func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskStatus, taskid string)(bool){
+func checkReplicastatus(t *testing.T, client *http.Client, target int32, taskid string, sessionTokenarray string)(bool){
 	t.Log("Checking the status of task ", taskid)
 	var jsonStrList = []byte(`{}`)
 	reqList, err := http.NewRequest("POST", urlList, bytes.NewBuffer(jsonStrList))
-	reqList.Header.Set("X-Custom-Header", "myvalue")
-	reqList.Header.Set("Content-Type", "application/json")
+	reqList.Header.Add("Authorization", sessionTokenarray)
+	respList, err := client.Do(reqList)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+		return false
+	}
+	defer respList.Body.Close()
+	newbody := make([]*common_proto.Task, 0)
+	bytebody, _ := ioutil.ReadAll(respList.Body)
+	_ = json.Unmarshal(bytebody, &newbody)
+	//t.Log(newbody)
+	for i := range newbody {
+		if newbody[i].Id == taskid {
+			if newbody[i].Replica == target {
+				t.Log("Find the task and check the number of replica, it is the same!", taskid)
+				return true
+			}
+			t.Log("Find the task and check the number of replica, it is not the same!", newbody[i].Replica)
+			return false
+		}
+	}
+	t.Log("Did not find the taskid ", taskid)
+	return false
+}
+
+func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskStatus, taskid string, sessionTokenarray string)(bool){
+	t.Log("Checking the status of task ", taskid)
+	var jsonStrList = []byte(`{}`)
+	reqList, err := http.NewRequest("POST", urlList, bytes.NewBuffer(jsonStrList))
+	reqList.Header.Add("Authorization", sessionTokenarray)
 	respList, err := client.Do(reqList)
 	if err != nil {
 		//panic(err)
@@ -38,9 +62,9 @@ func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskSt
 		if newbody[i].Id == taskid {
 			if newbody[i].Status == target {
 				t.Log("Find the task and check the status of task, it is the same!", taskid)
-				return false
+				return true
 			}
-			t.Log("Find the task and check the status of task, it is not the same!", taskid)
+			t.Log("Find the task and check the status of task, it is not the same!", newbody[i].Status)
 			return false
 		}
 	}
@@ -50,7 +74,7 @@ func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskSt
 
 func ClientLogin(t *testing.T, client *http.Client)(string){
 
-	var jsonStrlogin = []byte(`{"username":"testuser@mailinator.com", "password":"1111"}`)
+	var jsonStrlogin = []byte(`{"username":"testuser","email":"testuser@mailinator.com", "password":"1111"}`)
 	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
 	reqlogin.Header.Set("X-Custom-Header", "myvalue")
 	reqlogin.Header.Set("Content-Type", "application/json")
@@ -89,7 +113,7 @@ func TestCreateTask(t *testing.T) {
 	"Id": "12",
     "Type": "web",
     "Image": "nginx:1.12",
-	"Replica": 1,
+	"Replica": 4,
 	"DataCenter": "Datacenter",
 	"DataCenterId": "10"}`)
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
@@ -110,11 +134,104 @@ func TestCreateTask(t *testing.T) {
 	t.Log("Create Task Body:", string(body))
 	sbody := string(body)
 
-	time.Sleep(500)
+	time.Sleep(time.Millisecond*30000)
 
-	if !checkIDstatus(t, client, common_proto.TaskStatus_CANCEL, sbody){
+	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray){
 		t.Error("Tasks established faliure!")
 	}
+	if !checkReplicastatus(t, client, 4, sbody, sessionTokenarray){
+		t.Error("Tasks established faliure!")
+	}
+	//t.Log("Create Task Successfull!")
+	pb := &Request{TaskId: sbody}
+	jsonStrPurge, err := json.Marshal(pb)
+	if err != nil {
+		t.Error("could not marshal JSON")
+	}
+	reqPurge, err := http.NewRequest("POST", urlPurge, bytes.NewBuffer(jsonStrPurge))
+	reqPurge.Header.Add("Authorization", sessionTokenarray)
+
+	respPurge, err := client.Do(reqPurge)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+	}
+	defer respPurge.Body.Close()
+
+	if respPurge.Status != "200 OK" {
+		t.Error("Purge Status Error! Cannot login")
+	}
+}
+
+func TestCreateTaskDouble(t *testing.T) {
+
+	t.Log("URL for login:>", urlLogin)
+	cookieJar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: cookieJar,
+	}
+
+	t.Log("URL for Create Task:>", urlCreate)
+	sessionTokenarray := ClientLogin(t, client)
+
+	var jsonStrCreate = []byte(`{"UserId": "123",
+	"Name": "TestforCreatetask",
+	"Id": "12",
+    "Type": "web",
+    "Image": "nginx:1.12",
+	"Replica": 4,
+	"DataCenter": "Datacenter",
+	"DataCenterId": "10"}`)
+	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
+	reqCreate.Header.Add("Authorization", sessionTokenarray)
+
+	respCreate, err := client.Do(reqCreate)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+	}
+	defer respCreate.Body.Close()
+
+	t.Log("Create Task response Status:", respCreate.Status)
+	if respCreate.Status != "200 OK" {
+		t.Error("login Status Error!")
+	}
+	body, _ := ioutil.ReadAll(respCreate.Body)
+	t.Log("Create Task Body:", string(body))
+	sbody := string(body)
+
+	time.Sleep(time.Millisecond*30000)
+
+	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray){
+		t.Error("Tasks established faliure!")
+	}
+	if !checkReplicastatus(t, client, 4, sbody, sessionTokenarray){
+		t.Error("Tasks established faliure!")
+	}
+
+	reqCreateDouble, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
+	reqCreateDouble.Header.Add("Authorization", sessionTokenarray)
+
+	respCreateDouble, err := client.Do(reqCreateDouble)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+	}
+	defer respCreateDouble.Body.Close()
+
+	t.Log("Create Task response Status:", respCreateDouble.Status)
+	if respCreateDouble.Status != "200 OK" {
+		t.Error("login Status Error!")
+	}
+	time.Sleep(time.Millisecond*30000)
+
+	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray){
+		t.Error("Tasks has been overwrited")
+	}
+	if !checkReplicastatus(t, client, 4, sbody, sessionTokenarray){
+		t.Error("Tasks has been changed!")
+	}
+
 	//t.Log("Create Task Successfull!")
 	pb := &Request{TaskId: sbody}
 	jsonStrPurge, err := json.Marshal(pb)
@@ -161,7 +278,7 @@ func TestCreateTaskBADCred(t *testing.T) { //One cannot create task without logi
 	}
 	defer respCreate.Body.Close()
 
-	t.Log("Signin response Status:", respCreate.Status)
+	t.Log("Create response Status:", respCreate.Status)
 	if respCreate.Status == "200 OK" {
 		t.Error("Error! One should not create task without login!")
 	}
@@ -178,9 +295,65 @@ func TestUpdateTask(t *testing.T) {
 
 	sessionTokenarray := ClientLogin(t, client)
 
-	var jsonStrUpdate = []byte(`{"UserId": "123",
+	var jsonStrCreate = []byte(`{"UserId": "123",
 	"Name": "xiaowu",
 	"Id": "12",
+    "Type": "web",
+    "Image": "nginx:1.12",
+	"Replica": 1,
+	"DataCenter": "aslkdfjas",
+	"DataCenterId": "10"}`)
+	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
+	reqCreate.Header.Add("Authorization", sessionTokenarray)
+	respCreate, err := client.Do(reqCreate)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+	}
+	defer respCreate.Body.Close()
+
+	body, _ := ioutil.ReadAll(respCreate.Body)
+	t.Log("Create Task Body:", string(body))
+	//sbody := string(body)
+
+	var jsonStrUpdate = []byte(`{"UserId": "123",
+	"Name": "xiaowang",
+	"Id": "12",
+    "Type": "web",
+    "Image": "nginx:1.12",
+	"Replica": 1,
+	"DataCenter": "aslkdfjas",
+	"DataCenterId": "10"}`)
+	//time.Sleep(time.Millisecond*10000)
+	reqUpdate, err := http.NewRequest("POST", urlUpdate, bytes.NewBuffer(jsonStrUpdate))
+	reqUpdate.Header.Add("Authorization", sessionTokenarray)
+
+	respUpdate, err := client.Do(reqUpdate)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+	}
+	defer respUpdate.Body.Close()
+
+	t.Log("Update response Status:", respUpdate.Status)
+	if respUpdate.Status != "200 OK" {
+		t.Error("Update Status Error! Cannot update the task")
+	}
+}
+
+func TestUpdateTaskwithNotask(t *testing.T) {
+	t.Log("URL for login:>", urlLogin)
+	cookieJar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: cookieJar,
+	}
+	t.Log("URL for Update Task:>", urlUpdate)
+
+	sessionTokenarray := ClientLogin(t, client)
+
+	var jsonStrUpdate = []byte(`{"UserId": "123",
+	"Name": "xiaowu",
+	"Id": "120",
     "Type": "web",
     "Image": "nginx:1.12",
 	"Replica": 1,
@@ -197,13 +370,15 @@ func TestUpdateTask(t *testing.T) {
 	defer respUpdate.Body.Close()
 
 	t.Log("Update response Status:", respUpdate.Status)
-	if respUpdate.Status != "200 OK" {
-		t.Error("Update Status Error! Cannot update the task")
+	if respUpdate.Status == "200 OK" {
+		t.Error("Update Status Error! One should not update the task when he do not has this task")
 	}
 
 	time.Sleep(500)
 
 }
+
+
 
 func TestUpdateTaskBADCred(t *testing.T) { //One cannot Update task without login
 	t.Log("URL for Update Task:>", urlUpdate)
@@ -347,8 +522,7 @@ func TestPurgeTask(t *testing.T) {
 
 	var jsonStrList = []byte(`{}`)
 	reqList, err := http.NewRequest("POST", urlList, bytes.NewBuffer(jsonStrList))
-	reqList.Header.Set("X-Custom-Header", "myvalue")
-	reqList.Header.Set("Content-Type", "application/json")
+	reqList.Header.Add("Authorization", sessionTokenarray)
 	respList, err := client.Do(reqList)
 	if err != nil {
 		//panic(err)
@@ -357,7 +531,8 @@ func TestPurgeTask(t *testing.T) {
 	defer respList.Body.Close()
 
 	newbody, _ := ioutil.ReadAll(respList.Body)
-	if bytes.ContainsAny(newbody, sbody) {
+	t.Log("List Task Body:", string(newbody))
+	if strings.Contains(string(newbody), sbody) {
 		t.Error("Purge Status Error! Purge Faliure.")
 	}
 }
@@ -378,8 +553,7 @@ func TestPurgeTaskDoublePurge(t *testing.T) { //No man ever purges in the same t
 	"DataCenter": "Datacenter",
 	"DataCenterId": "10"}`)
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
-	reqCreate.Header.Set("X-Custom-Header", "myvalue")
-	reqCreate.Header.Set("Content-Type", "application/json")
+	reqCreate.Header.Add("Authorization", sessionTokenarray)
 
 	respCreate, err := client.Do(reqCreate)
 	if err != nil {
@@ -414,14 +588,14 @@ func TestPurgeTaskDoublePurge(t *testing.T) { //No man ever purges in the same t
 	if respPurge.Status != "200 OK" {
 		t.Error("Purge Status Error! Cannot login")
 	}
-	respPurge, err = client.Do(reqPurge)
+	respPurge1, err := client.Do(reqPurge)
 	if err != nil {
 		//panic(err)
 		t.Error("err")
 	}
-	defer respPurge.Body.Close()
+	defer respPurge1.Body.Close()
 
-	if respPurge.Status == "200 OK" {
+	if respPurge1.Status == "200 OK" {
 		t.Error("Purge Status Error! Purge Unsuccessful")
 	}
 
@@ -432,22 +606,7 @@ func TestCancelTask(t *testing.T) {
 	client := &http.Client{
 		Jar: cookieJar,
 	}
-	var jsonStrlogin = []byte(`{"username":"xiaowu", "password":"1111"}`)
-	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
-	reqlogin.Header.Set("X-Custom-Header", "myvalue")
-	reqlogin.Header.Set("Content-Type", "application/json")
-
-	resplogin, err := client.Do(reqlogin)
-	if err != nil {
-		//panic(err)
-		t.Error("err")
-	}
-	defer resplogin.Body.Close()
-
-	t.Log("Signin response Status:", resplogin.Status)
-	if resplogin.Status != "200 OK" {
-		t.Error("login Status Error!")
-	}
+	sessionTokenarray := ClientLogin(t, client)
 
 	var jsonStrCreate = []byte(`{"UserId": "123",
 	"Name": "TestforPurgetask",
@@ -458,8 +617,8 @@ func TestCancelTask(t *testing.T) {
 	"DataCenter": "Datacenter",
 	"DataCenterId": "10"}`)
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
-	reqCreate.Header.Set("X-Custom-Header", "myvalue")
-	reqCreate.Header.Set("Content-Type", "application/json")
+	reqCreate.Header.Add("Authorization", sessionTokenarray)
+
 
 	respCreate, err := client.Do(reqCreate)
 	if err != nil {
@@ -482,8 +641,8 @@ func TestCancelTask(t *testing.T) {
 		t.Error("could not marshal JSON")
 	}
 	reqCancel, err := http.NewRequest("POST", urlCancel, bytes.NewBuffer(jsonStrCancel))
-	reqCancel.Header.Set("X-Custom-Header", "myvalue")
-	reqCancel.Header.Set("Content-Type", "application/json")
+	reqCancel.Header.Add("Authorization", sessionTokenarray)
+
 
 	respCancel, err := client.Do(reqCancel)
 	if err != nil {
@@ -498,8 +657,8 @@ func TestCancelTask(t *testing.T) {
 
 	var jsonStrList = []byte(`{}`)
 	reqList, err := http.NewRequest("POST", urlList, bytes.NewBuffer(jsonStrList))
-	reqList.Header.Set("X-Custom-Header", "myvalue")
-	reqList.Header.Set("Content-Type", "application/json")
+	reqList.Header.Add("Authorization", sessionTokenarray)
+
 	respList, err := client.Do(reqList)
 	if err != nil {
 		//panic(err)
@@ -511,7 +670,7 @@ func TestCancelTask(t *testing.T) {
 	_ = json.Unmarshal(bytebody, &newbody)
 	for i := range newbody {
 		if newbody[i].Id == sbody {
-			if checkIDstatus(t, client, common_proto.TaskStatus_CANCEL, sbody) {
+			if !checkIDstatus(t, client, common_proto.TaskStatus_CANCEL, sbody, sessionTokenarray) {
 				t.Error("Error! Fail to cancel the task")
 			}
 		}
@@ -524,23 +683,7 @@ func TestCancelTaskDoubleCancel(t *testing.T) { //No man ever cancels in the sam
 	client := &http.Client{
 		Jar: cookieJar,
 	}
-
-	var jsonStrlogin = []byte(`{"username":"xiaowu", "password":"1111"}`)
-	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
-	reqlogin.Header.Set("X-Custom-Header", "myvalue")
-	reqlogin.Header.Set("Content-Type", "application/json")
-
-	resplogin, err := client.Do(reqlogin)
-	if err != nil {
-		//panic(err)
-		t.Error("err")
-	}
-	defer resplogin.Body.Close()
-
-	t.Log("Signin response Status:", resplogin.Status)
-	if resplogin.Status != "200 OK" {
-		t.Error("login Status Error!")
-	}
+	sessionTokenarray := ClientLogin(t, client)
 
 	var jsonStrCreate = []byte(`{"UserId": "123",
 	"Name": "TestforPurgetask",
@@ -551,8 +694,8 @@ func TestCancelTaskDoubleCancel(t *testing.T) { //No man ever cancels in the sam
 	"DataCenter": "Datacenter",
 	"DataCenterId": "10"}`)
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
-	reqCreate.Header.Set("X-Custom-Header", "myvalue")
-	reqCreate.Header.Set("Content-Type", "application/json")
+	reqCreate.Header.Add("Authorization", sessionTokenarray)
+
 
 	respCreate, err := client.Do(reqCreate)
 	if err != nil {
@@ -575,8 +718,8 @@ func TestCancelTaskDoubleCancel(t *testing.T) { //No man ever cancels in the sam
 		t.Error("could not marshal JSON")
 	}
 	reqCancel, err := http.NewRequest("POST", urlCancel, bytes.NewBuffer(jsonStrCancel))
-	reqCancel.Header.Set("X-Custom-Header", "myvalue")
-	reqCancel.Header.Set("Content-Type", "application/json")
+	reqCancel.Header.Add("Authorization", sessionTokenarray)
+
 
 	respCancel, err := client.Do(reqCancel)
 	if err != nil {
@@ -590,8 +733,8 @@ func TestCancelTaskDoubleCancel(t *testing.T) { //No man ever cancels in the sam
 	}
 
 	reqCancel1, err := http.NewRequest("POST", urlCancel, bytes.NewBuffer(jsonStrCancel))
-	reqCancel1.Header.Set("X-Custom-Header", "myvalue")
-	reqCancel1.Header.Set("Content-Type", "application/json")
+	reqCancel1.Header.Add("Authorization", sessionTokenarray)
+
 
 	respCancel1, err := client.Do(reqCancel1)
 	if err != nil {
@@ -601,7 +744,7 @@ func TestCancelTaskDoubleCancel(t *testing.T) { //No man ever cancels in the sam
 	defer respCancel1.Body.Close()
 
 	if respCancel1.Status == "200 OK" {
-		t.Error("Cancel Status Error! Cancel Unsuccessful")
+		t.Error("Cancel Status Error! Cancel should not be successful")
 	}
 
 }
