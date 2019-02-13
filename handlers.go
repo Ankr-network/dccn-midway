@@ -31,9 +31,9 @@ type Credentials struct {
 }
 
 func Signin(w http.ResponseWriter, r *http.Request) {
-	var creds Credentials
+	Creds := usermgr.User{}
 	// Get the JSON body and decode into credentials
-	err := json.NewDecoder(r.Body).Decode(&creds)
+	err := json.NewDecoder(r.Body).Decode(&Creds)
 	if err != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
@@ -52,10 +52,10 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 	}(conn)
 
 	userClient := usermgr.NewUserMgrClient(conn)
-	fmt.Printf("username: %s \n", creds.Username)
-	fmt.Printf("password: %s \n", creds.Password)
+	fmt.Printf("Email: %s \n", Creds.Email)
+	fmt.Printf("password: %s \n", Creds.Password)
 
-	rsp, err := userClient.Login(context.TODO(), &usermgr.LoginRequest{Email: creds.Username, Password: creds.Password})
+	rsp, err := userClient.Login(context.TODO(), &usermgr.LoginRequest{Email: Creds.Email, Password: Creds.Password})
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Printf("Something went wrong! %s\n", err)
@@ -72,9 +72,9 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 }
 
 func Signup(w http.ResponseWriter, r *http.Request) {
-	var creds Credentials
+	Creds := usermgr.User{}
 	// Get the JSON body and decode into credentials
-	err := json.NewDecoder(r.Body).Decode(&creds)
+	err := json.NewDecoder(r.Body).Decode(&Creds)
 	if err != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
@@ -83,26 +83,21 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Info("did not connect: ", err)
+		w.WriteHeader(http.StatusUnauthorized)
 	}
 	defer func(conn *grpc.ClientConn) {
 		if err := conn.Close(); err != nil {
 			log.Println(err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			return
 		}
 	}(conn)
 	userClient := usermgr.NewUserMgrClient(conn)
-	fmt.Printf("username: %s \n", creds.Username)
-	fmt.Printf("password: %s \n", creds.Password)
+	fmt.Printf("Email: %s \n", Creds.Email)
+	fmt.Printf("password: %s \n", Creds.Password)
 
-	user := &usermgr.User{
-		Name:     creds.Name,
-		Nickname: creds.Nickname,
-		Email:    creds.Username,
-		Password: creds.Password,
-		Balance:  0,
-	}
-
-	_, err = userClient.Register(context.Background(), user)
+	_, err = userClient.Register(context.Background(), &Creds)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		log.Printf("Something went wrong! \n")

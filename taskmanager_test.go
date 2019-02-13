@@ -74,7 +74,7 @@ func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskSt
 
 func ClientLogin(t *testing.T, client *http.Client)(string){
 
-	var jsonStrlogin = []byte(`{"username":"testuser","email":"testuser@mailinator.com", "password":"1111"}`)
+	var jsonStrlogin = []byte(`{"username":"testuser","email":"testuser2@mailinator.com", "password":"1111"}`)
 	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
 	reqlogin.Header.Set("X-Custom-Header", "myvalue")
 	reqlogin.Header.Set("Content-Type", "application/json")
@@ -134,7 +134,7 @@ func TestCreateTask(t *testing.T) {
 	t.Log("Create Task Body:", string(body))
 	sbody := string(body)
 
-	time.Sleep(time.Millisecond*30000)
+	time.Sleep(time.Millisecond*10000)
 
 	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray){
 		t.Error("Tasks established faliure!")
@@ -200,7 +200,7 @@ func TestCreateTaskDouble(t *testing.T) {
 	t.Log("Create Task Body:", string(body))
 	sbody := string(body)
 
-	time.Sleep(time.Millisecond*30000)
+	time.Sleep(time.Millisecond*3000)
 
 	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray){
 		t.Error("Tasks established faliure!")
@@ -223,7 +223,7 @@ func TestCreateTaskDouble(t *testing.T) {
 	if respCreateDouble.Status != "200 OK" {
 		t.Error("login Status Error!")
 	}
-	time.Sleep(time.Millisecond*30000)
+	time.Sleep(time.Millisecond*3000)
 
 	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray){
 		t.Error("Tasks has been overwrited")
@@ -295,15 +295,8 @@ func TestUpdateTask(t *testing.T) {
 
 	sessionTokenarray := ClientLogin(t, client)
 
-	var jsonStrCreate = []byte(`{"UserId": "123",
-	"Name": "xiaowu",
-	"Id": "12",
-    "Type": "web",
-    "Image": "nginx:1.12",
-	"Replica": 1,
-	"DataCenter": "aslkdfjas",
-	"DataCenterId": "10"}`)
-	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
+	payload := strings.NewReader("{\"id\":\"85e9d737-a8c1-4d02-86b4-81844f322a19\",\"user_id\":\"dba2456a-fe2a-4220-acbf-eafccf5b8af8\",\"name\":\"TestforPurgetask\",\"type\":\"web\",\"image\":\"nginx:1.12\",\"data_center\":\"Datacenter\",\"data_center_id\":\"10\",\"status\":7}")
+	reqCreate, err := http.NewRequest("POST", urlCreate, payload)
 	reqCreate.Header.Add("Authorization", sessionTokenarray)
 	respCreate, err := client.Do(reqCreate)
 	if err != nil {
@@ -316,16 +309,19 @@ func TestUpdateTask(t *testing.T) {
 	t.Log("Create Task Body:", string(body))
 	//sbody := string(body)
 
-	var jsonStrUpdate = []byte(`{"UserId": "123",
-	"Name": "xiaowang",
-	"Id": "12",
-    "Type": "web",
-    "Image": "nginx:1.12",
-	"Replica": 1,
-	"DataCenter": "aslkdfjas",
-	"DataCenterId": "10"}`)
+	//payload := strings.NewReader("{\"id\":\"85e9d737-a8c1-4d02-86b4-81844f322a19\",\"user_id\":\"dba2456a-fe2a-4220-acbf-eafccf5b8af8\",\"name\":\"TestforPurgetask\",\"type\":\"web\",\"image\":\"nginx:1.12\",\"data_center\":\"Datacenter\",\"data_center_id\":\"10\",\"status\":7}")
 	//time.Sleep(time.Millisecond*10000)
-	reqUpdate, err := http.NewRequest("POST", urlUpdate, bytes.NewBuffer(jsonStrUpdate))
+	jsonStrUpdate := common_proto.Task{
+	UserId: "123",
+	Name: "xiaowang",
+	Id: string(body),
+    Image: "nginx:1.12",
+	Replica: 1,
+	DataCenter: "aslkdfjas",
+	DataCenterId: "10",
+	}
+	jsonUpdateList, _ := json.Marshal(jsonStrUpdate)
+	reqUpdate, err := http.NewRequest("POST", urlUpdate, bytes.NewBuffer(jsonUpdateList))
 	reqUpdate.Header.Add("Authorization", sessionTokenarray)
 
 	respUpdate, err := client.Do(reqUpdate)
@@ -670,7 +666,7 @@ func TestCancelTask(t *testing.T) {
 	_ = json.Unmarshal(bytebody, &newbody)
 	for i := range newbody {
 		if newbody[i].Id == sbody {
-			if !checkIDstatus(t, client, common_proto.TaskStatus_CANCEL, sbody, sessionTokenarray) {
+			if !checkIDstatus(t, client, common_proto.TaskStatus_CANCELLED, sbody, sessionTokenarray) {
 				t.Error("Error! Fail to cancel the task")
 			}
 		}

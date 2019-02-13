@@ -68,15 +68,6 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
-
-	/*task := common_proto.Task{
-		UserId:       "sessionUserid",
-		Name:         Heretask.Name,
-		Type:         Heretask.Type,
-		Image:        Heretask.Image,
-		DataCenter:   Heretask.DataCenter,
-		DataCenterId: Heretask.DataCenterId,
-	}*/
 	tcrq := taskmgr.CreateTaskRequest{
 		UserId: "sessionUserid",
 		Task:   &Heretask,
@@ -144,19 +135,13 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 		UserId: "sessionUserid",
 		Task:   &Heretask,
 	}
-	Err2, err := dc.UpdateTask(ctx, &tcrq)
+	_, err = dc.UpdateTask(ctx, &tcrq)
 	if err != nil {
 		log.Info("Error! \n", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if Err2 == nil {
-		log.Info("Task created successfully. \n")
-	} else {
-		log.Info("Fail to create task. \n")
-		w.WriteHeader(http.StatusBadRequest)
-	}
-
+	log.Info("Task updated successfully. \n")
 }
 
 func ListTask(w http.ResponseWriter, r *http.Request) {
@@ -305,6 +290,56 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func TaskDetail(w http.ResponseWriter, r *http.Request) {
+	// We can obtain the session token from the requests cookies, which come with every request
+	log.Printf("Task Detail")
+	c, err := sessionTokenValue(w, r)
+	if err != nil {
+		if err == errors.New("Error! No sessionToken") {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	sessionToken := c
+	var NewRequest Request
+	// Get the JSON body and decode into credentials
+	err = json.NewDecoder(r.Body).Decode(&NewRequest)
+	log.Info(NewRequest)
+	log.Info("Above it the new Request")
+	if err != nil {
+		// If the structure of the body is wrong, return an HTTP error
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Printf("Something went wrong! %s\n", err)
+		return
+	}
+
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
+	if err != nil {
+		log.Info("did not connect: ", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	defer conn.Close()
+	dc := taskmgr.NewTaskMgrClient(conn)
+	md := metadata.New(map[string]string{
+		"token": sessionToken,
+	})
+
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	tokenContext, cancel := context.WithTimeout(ctx, 180*time.Second)
+	defer cancel()
+
+	if tcrp, err := dc.TaskDetail(tokenContext, &taskmgr.Request{UserId: "", TaskId: NewRequest.TaskId}); err != nil {
+		log.Println(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		log.Println("TaskDetail Ok")
+		w.Write([]byte(fmt.Sprintf("%s", tcrp.Task)))
+	}
+}
 
 func DataCenterList(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
