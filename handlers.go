@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const ENDPOINT = "192.168.1.125:50051"
+var ENDPOINT string
 
 var users = map[string]string{
 	"user1": "password1",
