@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ADDRESS = "http://localhost:8080"
+	ADDRESS = "https://midway-stage.dccn.ankr.network:443"
 )
 
 var (
