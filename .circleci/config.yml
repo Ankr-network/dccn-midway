@@ -65,7 +65,7 @@ jobs:
             mkdir ./k8s/tmp
 
             kubectl patch --local -o yaml -p \
-            '{"spec":{"template":{"spec":{"containers":[{"name":"midway","image":"'${AWS_ACCOUNT}'.dkr.ecr.'${AWS_REGION}'.amazonaws.com/dccn-midway:'${BRANCH_NAME}''${DATE}'"}]}}}}' \
+            '{"spec":{"template":{"spec":{"containers":[{"name":"app-dccn-midway","image":"'${AWS_ACCOUNT}'.dkr.ecr.'${AWS_REGION}'.amazonaws.com/dccn-midway:'${BRANCH_NAME}''${DATE}'"}]}}}}' \
             -f ./k8s/dccn-midway.yml > ./k8s/tmp/dccn-midway.yml
             kubectl apply -f ./k8s/tmp/dccn-midway.yml
             if ! kubectl rollout status deploy/midway --watch=true --timeout=60s; then
