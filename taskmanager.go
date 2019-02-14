@@ -19,7 +19,7 @@ type Task struct {
 	UserId       string `json:"UserId"`
 	Name         string `json:"Name"`
 	Id           string `json:"ID"`
-	Type         string`json:"Type"`
+	Type         string `json:"Type"`
 	Image        string `json:"Image"`
 	Replica      int32  `json:"Replica"`
 	DataCenter   string `json:"DataCenter"`
@@ -44,17 +44,17 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 	sessionToken := c
 
-	Heretask := common_proto.Task{}
+	var Heretask Task
 	// Get the JSON body and decode into credentials
 	err = json.NewDecoder(r.Body).Decode(&Heretask)
 	if err != nil {
 		// If the structure of the body is wrong, return an HTTP error
 		w.WriteHeader(http.StatusBadRequest)
-		log.Info("Something went wrong! ", err)
+		log.Info("Something went wrong! in Createtask", err)
 		return
 	}
-
 	log.Info(Heretask)
+	
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Info("did not connect: ", err)
@@ -67,10 +67,30 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		"token": sessionToken,
 	})
 
+	task := common_proto.Task{
+		UserId:       "sessionUserid",
+		Name:         Heretask.Name,
+		Replica:	  Heretask.Replica,
+		Image:        Heretask.Image,
+		DataCenter:   Heretask.DataCenter,
+		DataCenterId: Heretask.DataCenterId,
+	}
+	switch Heretask.Type {
+	case "0":
+		task.Type = common_proto.TaskType_DEFAULT
+	case "1":
+		task.Type = common_proto.TaskType_DEPLOYMENT
+	case "2":
+		task.Type = common_proto.TaskType_JOB
+	case "3":
+		task.Type = common_proto.TaskType_CRONJOB
+	default:
+		task.Type = common_proto.TaskType_DEFAULT
+	}
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 	tcrq := taskmgr.CreateTaskRequest{
 		UserId: "sessionUserid",
-		Task:   &Heretask,
+		Task:   &task,
 	}
 	tcrp, err := dc.CreateTask(ctx, &tcrq)
 	if err != nil {
@@ -98,7 +118,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Info(sessionToken)
 
-	Heretask := common_proto.Task{}
+	var Heretask Task
 	// Get the JSON body and decode into credentials
 	err1 := json.NewDecoder(r.Body).Decode(&Heretask)
 	if err1 != nil {
@@ -123,17 +143,30 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	/*task := common_proto.Task{
-		UserId:       "sessionUserid",
+	task := common_proto.Task{
+		Id:       	  Heretask.Id,
 		Name:         Heretask.Name,
-		Type:         Heretask.Type,
 		Image:        Heretask.Image,
 		DataCenter:   Heretask.DataCenter,
 		DataCenterId: Heretask.DataCenterId,
-	}*/
+		Replica:	  Heretask.Replica,
+	}
+	switch Heretask.Type {
+	case "0":
+		task.Type = common_proto.TaskType_DEFAULT
+	case "1":
+		task.Type = common_proto.TaskType_DEPLOYMENT
+	case "2":
+		task.Type = common_proto.TaskType_JOB
+	case "3":
+		task.Type = common_proto.TaskType_CRONJOB
+	default:
+		task.Type = common_proto.TaskType_DEFAULT
+	}
+	log.Info(task)
 	tcrq := taskmgr.UpdateTaskRequest{
 		UserId: "sessionUserid",
-		Task:   &Heretask,
+		Task:   &task,
 	}
 	_, err = dc.UpdateTask(ctx, &tcrq)
 	if err != nil {

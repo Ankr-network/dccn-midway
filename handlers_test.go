@@ -82,7 +82,7 @@ func TestSigninBAD(t *testing.T) {
 
 func TestSignup(t *testing.T) {
 	t.Log("URL for signup:>", urlSignup)
-	var jsonStrSignup = []byte(`{"username":"testuser","email":"testuser2@mailinator.com", "password":"1111"}`)
+	var jsonStrSignup = []byte(`{"username":"testuser","email":"testuser2@mailinator.com", "password":"1111111"}`)
 	reqsignup, err := http.NewRequest("POST", urlSignup, bytes.NewBuffer(jsonStrSignup))
 	reqsignup.Header.Set("X-Custom-Header", "myvalue")
 	reqsignup.Header.Set("Content-Type", "application/json")
@@ -98,6 +98,31 @@ func TestSignup(t *testing.T) {
 	t.Log("Signup response Status:", respsignup.Status)
 	if respsignup.Status != "200 OK" {
 		t.Error("Signup Status Error!")
+	}
+	t.Log("Signup response Headers:", respsignup.Header)
+	body, _ := ioutil.ReadAll(respsignup.Body)
+	t.Log("Signup response Body:", string(body))
+}
+
+
+func TestSignupshortpassword(t *testing.T) {
+	t.Log("URL for signup:>", urlSignup)
+	var jsonStrSignup = []byte(`{"username":"testuser","email":"testuser2@mailinator.com", "password":"1111"}`)
+	reqsignup, err := http.NewRequest("POST", urlSignup, bytes.NewBuffer(jsonStrSignup))
+	reqsignup.Header.Set("X-Custom-Header", "myvalue")
+	reqsignup.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	respsignup, err := client.Do(reqsignup)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+	}
+	defer respsignup.Body.Close()
+
+	t.Log("Signup response Status:", respsignup.Status)
+	if respsignup.Status == "200 OK" {
+		t.Error("Signup Status Error! one cannot register with this short password!")
 	}
 	t.Log("Signup response Headers:", respsignup.Header)
 	body, _ := ioutil.ReadAll(respsignup.Body)

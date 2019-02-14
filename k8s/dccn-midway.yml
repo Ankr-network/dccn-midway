@@ -15,28 +15,3 @@ spec:
           imagePullPolicy: Always
           ports:
           - containerPort: 8080
-            name: backend-http
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: midway
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-west-1:815280425737:certificate/3081789a-1314-46fe-be22-8b6fe31f731e
-    # Only run SSL on the port named "https" below.
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
-spec:
-  loadBalancerIP:
-  ports:
-  - port: 80
-    name: http
-    # Use named container port.
-    targetPort: 8080
-  - port: 443
-    name: https
-    # Use named container port.
-    targetPort: 8080
-  selector:
-    app: midway
-  type: LoadBalancer

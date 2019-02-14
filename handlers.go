@@ -15,7 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const ENDPOINT = "client-dev.dccn.ankr.network:50051"
+const ENDPOINT = "192.168.1.125:50051"
 
 var users = map[string]string{
 	"user1": "password1",
@@ -100,6 +100,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	_, err = userClient.Register(context.Background(), &Creds)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		log.Info(err)
 		log.Printf("Something went wrong! \n")
 	} else {
 		log.Printf("Register Success!")
