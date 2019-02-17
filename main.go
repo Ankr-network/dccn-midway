@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-
+	"github.com/gorilla/mux"
 	"github.com/gomodule/redigo/redis"
 	"github.com/gorilla/mux"
 )
@@ -11,6 +11,7 @@ import (
 var cache redis.Conn
 
 func main() {
+	//http.HandleFunc("/", receiveClientRequest)
 	r := mux.NewRouter()
 
 	r.HandleFunc("/login", Signin)
@@ -24,6 +25,9 @@ func main() {
 	r.HandleFunc("/purge", PurgeTask)
 	r.HandleFunc("/dclist", DataCenterList)
 	r.HandleFunc("/taskdetail", TaskDetail)
+	//http.HandleFunc("/confirmregistration", confirmRegistration)
+	//http.HandleFunc("/forgotpassword", forgotPassword)
+	//http.HandleFunc("/confirmpassword", confirmPassword)
 	http.Handle("/", &MyServer{r})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
