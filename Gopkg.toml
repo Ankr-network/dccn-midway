@@ -33,6 +33,10 @@
   name = "google.golang.org/grpc"
   version = "1.18.0"
 
+[[constraint]]
+  name = "github.com/gorilla/mux"
+  version = "v1.7.0"
+
 [prune]
   go-tests = true
   unused-packages = true
