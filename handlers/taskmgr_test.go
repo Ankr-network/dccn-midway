@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"bytes"
@@ -6,13 +6,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
+	"strings"
 	"testing"
 	"time"
-	"strings"
+
 	common_proto "github.com/Ankr-network/dccn-common/protos/common"
 )
 
-func checkReplicastatus(t *testing.T, client *http.Client, target int32, taskid string, sessionTokenarray string)(bool){
+func checkReplicastatus(t *testing.T, client *http.Client, target int32, taskid string, sessionTokenarray string) bool {
 	t.Log("Checking the status of task ", taskid)
 	var jsonStrList = []byte(`{}`)
 	reqList, err := http.NewRequest("POST", urlList, bytes.NewBuffer(jsonStrList))
@@ -42,7 +43,7 @@ func checkReplicastatus(t *testing.T, client *http.Client, target int32, taskid 
 	return false
 }
 
-func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskStatus, taskid string, sessionTokenarray string)(bool){
+func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskStatus, taskid string, sessionTokenarray string) bool {
 	t.Log("Checking the status of task ", taskid)
 	var jsonStrList = []byte(`{}`)
 	reqList, err := http.NewRequest("POST", urlList, bytes.NewBuffer(jsonStrList))
@@ -72,7 +73,7 @@ func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskSt
 	return false
 }
 
-func ClientLogin(t *testing.T, client *http.Client)(string){
+func ClientLogin(t *testing.T, client *http.Client) string {
 
 	var jsonStrlogin = []byte(`{"username":"testuser","email":"testuser2@mailinator.com", "password":"1111111"}`)
 	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
@@ -132,16 +133,16 @@ func TestCreateTask(t *testing.T) {
 	t.Log("Create Task Body:", string(body))
 	sbody := string(body)
 
-	time.Sleep(time.Millisecond*3000)
+	time.Sleep(time.Millisecond * 3000)
 
-	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray){
+	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray) {
 		t.Error("Tasks established faliure!")
 	}
-	if !checkReplicastatus(t, client, 4, sbody, sessionTokenarray){
+	if !checkReplicastatus(t, client, 4, sbody, sessionTokenarray) {
 		t.Error("Tasks established faliure!")
 	}
 	//t.Log("Create Task Successfull!")
-	pb := &Request{TaskId: sbody}
+	pb := &Request{TaskID: sbody}
 	jsonStrPurge, err := json.Marshal(pb)
 	if err != nil {
 		t.Error("could not marshal JSON")
@@ -196,12 +197,12 @@ func TestCreateTaskDouble(t *testing.T) {
 	t.Log("Create Task Body:", string(body))
 	sbody := string(body)
 
-	time.Sleep(time.Millisecond*3000)
+	time.Sleep(time.Millisecond * 3000)
 
-	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray){
+	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray) {
 		t.Error("Tasks established faliure!")
 	}
-	if !checkReplicastatus(t, client, 4, sbody, sessionTokenarray){
+	if !checkReplicastatus(t, client, 4, sbody, sessionTokenarray) {
 		t.Error("Tasks established faliure!")
 	}
 
@@ -219,17 +220,17 @@ func TestCreateTaskDouble(t *testing.T) {
 	if respCreateDouble.Status != "200 OK" {
 		t.Error("login Status Error!")
 	}
-	time.Sleep(time.Millisecond*3000)
+	time.Sleep(time.Millisecond * 3000)
 
-	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray){
+	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray) {
 		t.Error("Tasks has been overwrited")
 	}
-	if !checkReplicastatus(t, client, 4, sbody, sessionTokenarray){
+	if !checkReplicastatus(t, client, 4, sbody, sessionTokenarray) {
 		t.Error("Tasks has been changed!")
 	}
 
 	//t.Log("Create Task Successfull!")
-	pb := &Request{TaskId: sbody}
+	pb := &Request{TaskID: sbody}
 	jsonStrPurge, err := json.Marshal(pb)
 	if err != nil {
 		t.Error("could not marshal JSON")
@@ -308,13 +309,13 @@ func TestUpdateTask(t *testing.T) {
 	//payload := strings.NewReader("{\"id\":\"85e9d737-a8c1-4d02-86b4-81844f322a19\",\"user_id\":\"dba2456a-fe2a-4220-acbf-eafccf5b8af8\",\"name\":\"TestforPurgetask\",\"type\":\"web\",\"image\":\"nginx:1.12\",\"data_center\":\"Datacenter\",\"data_center_id\":\"10\",\"status\":7}")
 	//time.Sleep(time.Millisecond*10000)
 	jsonStrUpdate := common_proto.Task{
-	UserId: "123",
-	Name: "xiaoWang",
-	Id: string(body),
-    Image: "nginx:1.12",
-	Replica: 1,
-	DataCenter: "aslkdfjas",
-	DataCenterId: "10",
+		UserId:       "123",
+		Name:         "xiaoWang",
+		Id:           string(body),
+		Image:        "nginx:1.12",
+		Replica:      1,
+		DataCenter:   "aslkdfjas",
+		DataCenterId: "10",
 	}
 	jsonUpdateList, _ := json.Marshal(jsonStrUpdate)
 	reqUpdate, err := http.NewRequest("POST", urlUpdate, bytes.NewBuffer(jsonUpdateList))
@@ -368,8 +369,6 @@ func TestUpdateTaskwithNotask(t *testing.T) {
 	time.Sleep(500)
 
 }
-
-
 
 func TestUpdateTaskBADCred(t *testing.T) { //One cannot Update task without login
 	t.Log("URL for Update Task:>", urlUpdate)
@@ -491,7 +490,7 @@ func TestPurgeTask(t *testing.T) {
 	t.Log("Create Task Body:", string(body))
 	sbody := string(body)
 
-	pb := &Request{TaskId: sbody}
+	pb := &Request{TaskID: sbody}
 	jsonStrPurge, err := json.Marshal(pb)
 	if err != nil {
 		t.Error("could not marshal JSON")
@@ -560,7 +559,7 @@ func TestPurgeTaskDoublePurge(t *testing.T) { //No man ever purges in the same t
 	t.Log("Create Task Body:", string(body))
 	sbody := string(body)
 
-	pb := &Request{TaskId: sbody}
+	pb := &Request{TaskID: sbody}
 	jsonStrPurge, err := json.Marshal(pb)
 	if err != nil {
 		t.Error("could not marshal JSON")
@@ -609,7 +608,6 @@ func TestCancelTask(t *testing.T) {
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
 	reqCreate.Header.Add("Authorization", sessionTokenarray)
 
-
 	respCreate, err := client.Do(reqCreate)
 	if err != nil {
 		//panic(err)
@@ -625,14 +623,13 @@ func TestCancelTask(t *testing.T) {
 	t.Log("Create Task Body:", string(body))
 	sbody := string(body)
 
-	pb := &Request{TaskId: sbody}
+	pb := &Request{TaskID: sbody}
 	jsonStrCancel, err := json.Marshal(pb)
 	if err != nil {
 		t.Error("could not marshal JSON")
 	}
 	reqCancel, err := http.NewRequest("POST", urlCancel, bytes.NewBuffer(jsonStrCancel))
 	reqCancel.Header.Add("Authorization", sessionTokenarray)
-
 
 	respCancel, err := client.Do(reqCancel)
 	if err != nil {
@@ -686,7 +683,6 @@ func TestCancelTaskDoubleCancel(t *testing.T) { //No man ever cancels in the sam
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
 	reqCreate.Header.Add("Authorization", sessionTokenarray)
 
-
 	respCreate, err := client.Do(reqCreate)
 	if err != nil {
 		//panic(err)
@@ -702,14 +698,13 @@ func TestCancelTaskDoubleCancel(t *testing.T) { //No man ever cancels in the sam
 	t.Log("Create Task Body:", string(body))
 	sbody := string(body)
 
-	pb := &Request{TaskId: sbody}
+	pb := &Request{TaskID: sbody}
 	jsonStrCancel, err := json.Marshal(pb)
 	if err != nil {
 		t.Error("could not marshal JSON")
 	}
 	reqCancel, err := http.NewRequest("POST", urlCancel, bytes.NewBuffer(jsonStrCancel))
 	reqCancel.Header.Add("Authorization", sessionTokenarray)
-
 
 	respCancel, err := client.Do(reqCancel)
 	if err != nil {
@@ -724,7 +719,6 @@ func TestCancelTaskDoubleCancel(t *testing.T) { //No man ever cancels in the sam
 
 	reqCancel1, err := http.NewRequest("POST", urlCancel, bytes.NewBuffer(jsonStrCancel))
 	reqCancel1.Header.Add("Authorization", sessionTokenarray)
-
 
 	respCancel1, err := client.Do(reqCancel1)
 	if err != nil {

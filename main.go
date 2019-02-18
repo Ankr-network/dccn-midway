@@ -8,8 +8,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var cache redis.Conn
-
 func main() {
 	//http.HandleFunc("/", receiveClientRequest)
 	r := mux.NewRouter()
