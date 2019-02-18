@@ -6,13 +6,9 @@ import (
 
 	"github.com/Ankr-network/dccn-midway/handlers"
 	"github.com/gorilla/mux"
-	"github.com/gomodule/redigo/redis"
 )
 
 func main() {
-//	initCache()
-	// "Signin" and "Signup" are handler that we will implement
-	//http.HandleFunc("/", receiveClientRequest)
 	r := mux.NewRouter()
 
 	r.HandleFunc("/login", handlers.Signin)
@@ -26,26 +22,29 @@ func main() {
 	r.HandleFunc("/purge", handlers.PurgeTask)
 	r.HandleFunc("/dclist", handlers.DataCenterList)
 	r.HandleFunc("/taskdetail", handlers.TaskDetail)
+	//http.HandleFunc("/confirmregistration", handlers.confirmRegistration)
+	//http.HandleFunc("/forgotpassword", handlers.forgotPassword)
+	//http.HandleFunc("/confirmpassword", handlers.confirmPassword)
+	// start the server on port 8000
 	http.Handle("/", &MyServer{r})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 type MyServer struct {
-    r *mux.Router
+	r *mux.Router
 }
 
 func (s *MyServer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-    if origin := req.Header.Get("Origin"); origin != "" {
-	    rw.Header().Add("Access-Control-Allow-Origin", origin)
-        rw.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-        rw.Header().Add("Access-Control-Allow-Headers",
+	if origin := req.Header.Get("Origin"); origin != "" {
+		rw.Header().Add("Access-Control-Allow-Origin", origin)
+		rw.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		rw.Header().Add("Access-Control-Allow-Headers",
 			"Accept, Content-Type, Content-Length, Authorization")
-    }
-    // Stop here if its Preflighted OPTIONS request
-    if req.Method == "OPTIONS" {
-		log.Println("xiaohua")
-        return
-    }
-    // Lets Gorilla work
-    s.r.ServeHTTP(rw, req)
+	}
+	// Stop here if its Preflighted OPTIONS request
+	if req.Method == "OPTIONS" {
+		return
+	}
+	// Lets Gorilla work
+	s.r.ServeHTTP(rw, req)
 }
