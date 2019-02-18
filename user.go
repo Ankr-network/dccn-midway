@@ -10,6 +10,7 @@ import (
 	usermgr "github.com/Ankr-network/dccn-common/protos/usermgr/v1/grpc"
 	"google.golang.org/grpc"
 	"context"
+	metadata "google.golang.org/grpc/metadata"
 )
 
 type Confirmation struct {
@@ -183,6 +184,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func(conn *grpc.ClientConn) {
 		if err := conn.Close(); err != nil {
+			w.Write([]byte(err.Error()))
 			log.Println(err.Error())
 		}
 	}(conn)
@@ -192,6 +194,7 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	_, err = userClient.ChangePassword(context.TODO(), &usermgr.ChangePasswordRequest{OldPassword: Creds.OldPassword})
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		log.Printf("Something went wrong! %s\n", err)
 		return
@@ -227,6 +230,7 @@ func ChangeEmail(w http.ResponseWriter, r *http.Request) {
 
 	_, err = userClient.ChangeEmail(context.TODO(), &usermgr.ChangeEmailRequest{NewEmail: Creds.NewEmail})
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		log.Printf("Something went wrong! %s\n", err)
 		return
@@ -240,6 +244,7 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Update Attribute")
 	sessionToken, err:= sessionTokenValue(w, r)
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		log.Info("Cannot Access to sessionToken!")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -250,21 +255,22 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 	// Get the JSON body and decode into credentials
 	err1 := json.NewDecoder(r.Body).Decode(&Heretask)
 	if err1 != nil {
-		// If the structure of the body is wrong, return an HTTP error
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Printf("Something went wrong! %s\n", err1)
+		log.Printf("Something went wrong! %s\n", err1)
 		return
 	}
 
 	log.Info(Heretask)
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		log.Info("did not connect: ", err)
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	defer conn.Close()
-	dc := taskmgr.NewUserMgrClient(conn)
+	dc := usermgr.NewUserMgrClient(conn)
 	md := metadata.New(map[string]string{
 		"token": sessionToken,
 	})
@@ -290,13 +296,14 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 		task.Type = usermgr.UserStatus_WAIT_ACTIVATED
 	}
 	log.Info(task)
-	tcrq := taskmgr.UpdateAttributesRequest{
+	tcrq := usermgr.UpdateAttributesRequest{
 		UserId: Heretask.UserId,
 		UpdateAttributesCode: Heretask.UpdateAttributesCode,
 		UserAttribute:   &task,
 	}
 	_, err = dc.UpdateAttributes(ctx, &tcrq)
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		log.Info("Error! \n", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
