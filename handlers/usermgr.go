@@ -1,18 +1,16 @@
-package main
+package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-	//"time"
-	"errors"
+
 	usermgr "github.com/Ankr-network/dccn-common/protos/usermgr/v1/grpc"
-	"google.golang.org/grpc"
-
-	//"github.com/satori/go.uuid"
-	"context"
-
+	"github.com/Ankr-network/dccn-midway/util"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 var ENDPOINT string
@@ -30,18 +28,25 @@ type Credentials struct {
 	Nickname string `json:"nickname"`
 }
 
+type RefreshToken struct{
+	RefreshTokenValue string `json:"RefreshToken"`
+}
+
+
 func Signin(w http.ResponseWriter, r *http.Request) {
-	Creds := usermgr.User{}
+	var NewUser Credentials
 	// Get the JSON body and decode into credentials
-	err := json.NewDecoder(r.Body).Decode(&Creds)
+	err := json.NewDecoder(r.Body).Decode(&NewUser)
 	if err != nil {
 		// If the structure of the body is wrong, return an HTTP error
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusUnauthorized)
 		log.Info("did not connect: ", err)
 	}
@@ -50,29 +55,40 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			log.Println(err.Error())
 		}
 	}(conn)
-
 	userClient := usermgr.NewUserMgrClient(conn)
-	fmt.Printf("Email: %s \n", Creds.Email)
-	fmt.Printf("password: %s \n", Creds.Password)
+	log.Printf("Email: %s \n", NewUser.Email)
+	log.Printf("password: %s \n", NewUser.Password)
 
-	rsp, err := userClient.Login(context.TODO(), &usermgr.LoginRequest{Email: Creds.Email, Password: Creds.Password})
+	rsp, err := userClient.Login(context.TODO(), &usermgr.LoginRequest{Email: NewUser.Email, Password: NewUser.Password})
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! %s\n", err)
+		log.Printf("Something went wrong! %s\n", err)
 		return
 	}
 
-	log.Printf("login Success: %s\n", rsp.Token)
-	if rsp.Error != nil {
-		fmt.Printf("Something went wrong! In hub %s\n", rsp.Error)
+	log.Printf("login Successful!")
+	w.Write([]byte("login Successful!"))
+	JsonAuthenticationResult, err := json.Marshal(rsp.AuthenticationResult)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
+		log.Printf("Something went wrong in Marshall Request! %s\n", err)
 		return
 	}
-	sessionToken := rsp.Token
-	w.Write([]byte(fmt.Sprintf("%s", sessionToken)))
+	w.Write(JsonAuthenticationResult)
+	JsonUser, _err := json.Marshal(rsp.User)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
+		log.Printf("Something went wrong in Marshall Request! %s\n", err)
+		return
+	}
+	w.Write(JsonUser)
 }
 
 func Signup(w http.ResponseWriter, r *http.Request) {
-	Creds := usermgr.User{}
+	var Creds Credentials
 	// Get the JSON body and decode into credentials
 	err := json.NewDecoder(r.Body).Decode(&Creds)
 	if err != nil {
@@ -83,6 +99,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		log.Info("did not connect: ", err)
 		w.WriteHeader(http.StatusUnauthorized)
 	}
@@ -94,11 +111,14 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		}
 	}(conn)
 	userClient := usermgr.NewUserMgrClient(conn)
-	fmt.Printf("Email: %s \n", Creds.Email)
-	fmt.Printf("password: %s \n", Creds.Password)
-
-	_, err = userClient.Register(context.Background(), &Creds)
+	log.Printf("Email: %s \n", Creds.Email)
+	log.Printf("password: %s \n", Creds.Password)
+	attribute := usermgr.UserAttribute{
+		Name: Creds.Name,
+	}
+	_, err = userClient.Register(context.Background(), &usermgr.RegisterRequest{Password: Creds.Password, User: &usermgr.User{Email: Creds.Email, Attribute: &attribute}})
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusUnauthorized)
 		log.Info(err)
 		log.Printf("Something went wrong! \n")
@@ -109,14 +129,9 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 func Welcome(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
-	c, err := sessionTokenValue(w, r)
+	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		// For any other type of error, return a bad request status
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -125,26 +140,15 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 }
 
 func Refresh(w http.ResponseWriter, r *http.Request) {
-	c, err := sessionTokenValue(w, r)
+	var refreshtoken RefreshToken
+	err := json.NewDecoder(r.Body).Decode(&refreshtoken)
 	if err != nil {
-		if err == errors.New("Error! No sessionToken") {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
+		// If the structure of the body is wrong, return an HTTP error
+		w.Write([]byte(err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	sessionToken := c
 
-	response, err := cache.Do("GET", sessionToken)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if response == nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -156,14 +160,12 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	}(conn)
 	userClient := usermgr.NewUserMgrClient(conn)
 
-	_, err = userClient.VerifyAndRefreshToken(context.Background(), &usermgr.Token{Token: sessionToken})
+	_, err = userClient.RefreshSession(context.Background(), &usermgr.RefreshToken{RefreshToken: refreshtoken.RefreshTokenValue})
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n %s", err)
+		log.Printf("Something went wrong! \n %s", err)
 		return
 	}
 
 	log.Printf("Refresh Success!")
-	w.Write([]byte(fmt.Sprintf("%s", sessionToken)))
 }
- 

@@ -26,8 +26,13 @@
 
 
 [[constraint]]
-  branch = "develop"
+  branch = "feature/SWDEV-149-restructure-proto"
   name = "github.com/Ankr-network/dccn-common"
+
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/tendermint/tendermint"
 
 [[constraint]]
   name = "google.golang.org/grpc"
@@ -36,3 +41,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/gorilla/mux"
+  version = "v1.7.0"
