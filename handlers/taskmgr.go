@@ -24,8 +24,10 @@ type Task struct {
 	Type         string `json:"Type"`
 	Image        string `json:"Image"`
 	Replica      int32  `json:"Replica"`
-	DataCenter   string `json:"DataCenter"`
-	DataCenterID string `json:"DataCenterID"`
+	hidden 		 bool   `json:"hidden"`
+	CreationDate uint64 `json:"CreationDate"`
+	DataCenterName   string `json:"DataCenterName"`
+	LastModifiedDate uint64 `json:"LastModifiedDate"`
 }
 
 type Request struct {
@@ -70,7 +72,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	})
 
 	task := common_proto.Task{
-		UserId:       "sessionUserid",
+		Id:       	  Heretask.Id,
 		Name:         Heretask.Name,
 		Replica:      Heretask.Replica,
 		Image:        Heretask.Image,
