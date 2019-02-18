@@ -3,48 +3,49 @@ package main
 import (
 	"log"
 	"net/http"
+
+	"github.com/Ankr-network/dccn-midway/handlers"
 	"github.com/gorilla/mux"
 	"github.com/gomodule/redigo/redis"
-	"github.com/gorilla/mux"
 )
 
 func main() {
+//	initCache()
+	// "Signin" and "Signup" are handler that we will implement
 	//http.HandleFunc("/", receiveClientRequest)
 	r := mux.NewRouter()
 
-	r.HandleFunc("/login", Signin)
-	r.HandleFunc("/signup", Signup)
-	r.HandleFunc("/welcome", Welcome)
-	r.HandleFunc("/refresh", Refresh)
-	r.HandleFunc("/create", CreateTask)
-	r.HandleFunc("/update", UpdateTask)
-	r.HandleFunc("/list", ListTask)
-	r.HandleFunc("/delete", CancelTask)
-	r.HandleFunc("/purge", PurgeTask)
-	r.HandleFunc("/dclist", DataCenterList)
-	r.HandleFunc("/taskdetail", TaskDetail)
-	//http.HandleFunc("/confirmregistration", confirmRegistration)
-	//http.HandleFunc("/forgotpassword", forgotPassword)
-	//http.HandleFunc("/confirmpassword", confirmPassword)
+	r.HandleFunc("/login", handlers.Signin)
+	r.HandleFunc("/signup", handlers.Signup)
+	r.HandleFunc("/welcome", handlers.Welcome)
+	r.HandleFunc("/refresh", handlers.Refresh)
+	r.HandleFunc("/create", handlers.CreateTask)
+	r.HandleFunc("/update", handlers.UpdateTask)
+	r.HandleFunc("/list", handlers.ListTask)
+	r.HandleFunc("/delete", handlers.CancelTask)
+	r.HandleFunc("/purge", handlers.PurgeTask)
+	r.HandleFunc("/dclist", handlers.DataCenterList)
+	r.HandleFunc("/taskdetail", handlers.TaskDetail)
 	http.Handle("/", &MyServer{r})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 type MyServer struct {
-	r *mux.Router
+    r *mux.Router
 }
 
 func (s *MyServer) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	if origin := req.Header.Get("Origin"); origin != "" {
-		rw.Header().Add("Access-Control-Allow-Origin", origin)
-		rw.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-		rw.Header().Add("Access-Control-Allow-Headers",
+    if origin := req.Header.Get("Origin"); origin != "" {
+	    rw.Header().Add("Access-Control-Allow-Origin", origin)
+        rw.Header().Add("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+        rw.Header().Add("Access-Control-Allow-Headers",
 			"Accept, Content-Type, Content-Length, Authorization")
-	}
-	// Stop here if its Preflighted OPTIONS request
-	if req.Method == "OPTIONS" {
-		return
-	}
-	// Lets Gorilla work
-	s.r.ServeHTTP(rw, req)
+    }
+    // Stop here if its Preflighted OPTIONS request
+    if req.Method == "OPTIONS" {
+		log.Println("xiaohua")
+        return
+    }
+    // Lets Gorilla work
+    s.r.ServeHTTP(rw, req)
 }
