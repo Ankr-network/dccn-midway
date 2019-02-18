@@ -1,39 +1,41 @@
-package main
+package handlers
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
-	"errors"
+
 	common_proto "github.com/Ankr-network/dccn-common/protos/common"
-	taskmgr "github.com/Ankr-network/dccn-common/protos/taskmgr/v1/grpc"
 	dcmgr "github.com/Ankr-network/dccn-common/protos/dcmgr/v1/grpc"
+	taskmgr "github.com/Ankr-network/dccn-common/protos/taskmgr/v1/grpc"
+	"github.com/Ankr-network/dccn-midway/util"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	metadata "google.golang.org/grpc/metadata"
 )
 
 type Task struct {
-	UserId       string `json:"UserId"`
+	UserID       string `json:"UserID"`
 	Name         string `json:"Name"`
-	Id           string `json:"ID"`
+	ID           string `json:"ID"`
 	Type         string `json:"Type"`
 	Image        string `json:"Image"`
 	Replica      int32  `json:"Replica"`
 	DataCenter   string `json:"DataCenter"`
-	DataCenterId string `json:"DataCenterId"`
+	DataCenterID string `json:"DataCenterID"`
 }
 
 type Request struct {
-	TaskId string `json:"TaskId"`
+	TaskID string `json:"TaskID"`
 }
 
 func CreateTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Create Tasks")
-	c, err := sessionTokenValue(w, r)
+	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
 		if err == errors.New("Error! No sessionToken") {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -54,7 +56,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Info(Heretask)
-	
+
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Info("did not connect: ", err)
@@ -70,10 +72,10 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	task := common_proto.Task{
 		UserId:       "sessionUserid",
 		Name:         Heretask.Name,
-		Replica:	  Heretask.Replica,
+		Replica:      Heretask.Replica,
 		Image:        Heretask.Image,
 		DataCenter:   Heretask.DataCenter,
-		DataCenterId: Heretask.DataCenterId,
+		DataCenterId: Heretask.DataCenterID,
 	}
 	switch Heretask.Type {
 	case "0":
@@ -110,7 +112,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Update Tasks")
-	sessionToken, err:= sessionTokenValue(w, r)
+	sessionToken, err := util.SessionTokenValue(w, r)
 	if err != nil {
 		log.Info("Cannot Access to sessionToken!")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -144,12 +146,12 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
 	task := common_proto.Task{
-		Id:       	  Heretask.Id,
+		Id:           Heretask.ID,
 		Name:         Heretask.Name,
 		Image:        Heretask.Image,
 		DataCenter:   Heretask.DataCenter,
-		DataCenterId: Heretask.DataCenterId,
-		Replica:	  Heretask.Replica,
+		DataCenterId: Heretask.DataCenterID,
+		Replica:      Heretask.Replica,
 	}
 	switch Heretask.Type {
 	case "0":
@@ -180,7 +182,7 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 func ListTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Task Lists")
-	sessionToken, err := sessionTokenValue(w, r)
+	sessionToken, err := util.SessionTokenValue(w, r)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -205,8 +207,8 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	userTasks := make([]*common_proto.Task, 0)
-	rsp, err := dc.TaskList(tokenContext, &taskmgr.ID{UserId: "sessionUserid"});
-	if  err != nil {
+	rsp, err := dc.TaskList(tokenContext, &taskmgr.ID{UserId: "sessionUserid"})
+	if err != nil {
 		log.Info(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -227,7 +229,7 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 func CancelTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Cancel Task")
-	c, err := sessionTokenValue(w, r)
+	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
 		if err == errors.New("Error! No sessionToken") {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -265,7 +267,8 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 	tokenContext, cancel := context.WithTimeout(ctx, 180*time.Second)
 	defer cancel()
 
-	if _, err := dc.CancelTask(tokenContext, &taskmgr.Request{UserId: "sessionUserid", TaskId: NewRequest.TaskId}); err != nil {
+	if _, err := dc.CancelTask(tokenContext, 
+		&taskmgr.Request{UserId: "sessionUserid", TaskId: NewRequest.TaskID}); err != nil {
 		log.Println(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 	} else {
@@ -276,7 +279,7 @@ func CancelTask(w http.ResponseWriter, r *http.Request) {
 func PurgeTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Purge Task")
-	c, err := sessionTokenValue(w, r)
+	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
 		if err == errors.New("Error! No sessionToken") {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -315,7 +318,8 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 	tokenContext, cancel := context.WithTimeout(ctx, 180*time.Second)
 	defer cancel()
 
-	if _, err := dc.PurgeTask(tokenContext, &taskmgr.Request{UserId: "", TaskId: NewRequest.TaskId}); err != nil {
+	if _, err := dc.PurgeTask(tokenContext, 
+		&taskmgr.Request{UserId: "", TaskId: NewRequest.TaskID}); err != nil {
 		log.Println(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 	} else {
@@ -326,7 +330,7 @@ func PurgeTask(w http.ResponseWriter, r *http.Request) {
 func TaskDetail(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Task Detail")
-	c, err := sessionTokenValue(w, r)
+	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
 		if err == errors.New("Error! No sessionToken") {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -365,7 +369,8 @@ func TaskDetail(w http.ResponseWriter, r *http.Request) {
 	tokenContext, cancel := context.WithTimeout(ctx, 180*time.Second)
 	defer cancel()
 
-	if tcrp, err := dc.TaskDetail(tokenContext, &taskmgr.Request{UserId: "", TaskId: NewRequest.TaskId}); err != nil {
+	if tcrp, err := dc.TaskDetail(tokenContext, 
+		&taskmgr.Request{UserId: "", TaskId: NewRequest.TaskID}); err != nil {
 		log.Println(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 	} else {
@@ -377,7 +382,7 @@ func TaskDetail(w http.ResponseWriter, r *http.Request) {
 func DataCenterList(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Datacenter Lists")
-	c, err := sessionTokenValue(w, r)
+	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
 		if err == errors.New("Error! No sessionToken") {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -403,7 +408,7 @@ func DataCenterList(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	Datacenters := make([]*common_proto.DataCenter, 0)
-	rsp, err := dc.DataCenterList(tokenContext, &dcmgr.DataCenterListRequest{UserId: ""});
+	rsp, err := dc.DataCenterList(tokenContext, &dcmgr.DataCenterListRequest{UserId: ""})
 	if err != nil {
 		log.Info(err.Error())
 		w.WriteHeader(http.StatusUnauthorized)
@@ -413,11 +418,11 @@ func DataCenterList(w http.ResponseWriter, r *http.Request) {
 	if len(Datacenters) == 0 {
 		log.Printf("no datacenter is running now")
 		return
-		} 
-		log.Println(len(Datacenters), "datacenters is running now")
-		jsonDcList, _ := json.Marshal(Datacenters)
-		w.Write(jsonDcList)
-		for i := range Datacenters {
-			log.Println(Datacenters[i])
-		}
+	}
+	log.Println(len(Datacenters), "datacenters is running now")
+	jsonDcList, _ := json.Marshal(Datacenters)
+	w.Write(jsonDcList)
+	for i := range Datacenters {
+		log.Println(Datacenters[i])
+	}
 }

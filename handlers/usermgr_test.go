@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"bytes"
@@ -103,7 +103,6 @@ func TestSignup(t *testing.T) {
 	body, _ := ioutil.ReadAll(respsignup.Body)
 	t.Log("Signup response Body:", string(body))
 }
-
 
 func TestSignupshortpassword(t *testing.T) {
 	t.Log("URL for signup:>", urlSignup)

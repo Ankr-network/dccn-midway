@@ -15,7 +15,6 @@ RUN go install -v -ldflags="-s -w \
     -X main.date=$(date +%Y-%m-%dT%H:%M:%S%z) \
     -X main.ENDPOINT=${URL_BRANCH}"
 
-
 # Build image, alpine offers more possibilities than scratch
 FROM alpine
 

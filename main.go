@@ -7,8 +7,6 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-var cache redis.Conn
-
 func main() {
 //	initCache()
 	// "Signin" and "Signup" are handler that we will implement

@@ -1,18 +1,16 @@
-package main
+package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-	//"time"
-	"errors"
+
 	usermgr "github.com/Ankr-network/dccn-common/protos/usermgr/v1/grpc"
-	"google.golang.org/grpc"
-
-	//"github.com/satori/go.uuid"
-	"context"
-
+	"github.com/Ankr-network/dccn-midway/util"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 var ENDPOINT string
@@ -109,7 +107,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 
 func Welcome(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
-	c, err := sessionTokenValue(w, r)
+	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
@@ -125,7 +123,7 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 }
 
 func Refresh(w http.ResponseWriter, r *http.Request) {
-	c, err := sessionTokenValue(w, r)
+	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
 		if err == errors.New("Error! No sessionToken") {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -136,15 +134,6 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 	sessionToken := c
 
-	response, err := cache.Do("GET", sessionToken)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if response == nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -166,4 +155,3 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Refresh Success!")
 	w.Write([]byte(fmt.Sprintf("%s", sessionToken)))
 }
- 
