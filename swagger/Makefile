@@ -1,3 +1,5 @@
+.PHONY: restart stop start echo
+
 restart: stop start
 
 start:
@@ -10,6 +12,9 @@ start:
 		to view the api specification.
 
 stop:
-	@docker container stop ankr-swagger > /dev/null
+	@CID="$$(docker ps --all --quiet --filter=name='ankr-swagger')"; \
+	if [ -n "$$CID" ]; then \
+		docker container stop ankr-swagger > /dev/null; \
+	fi
 	@rm -rf /tmp/swagger.yaml
 	@echo "Server is shutdown"
