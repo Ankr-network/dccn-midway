@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "feature/SWDEV-149-restructure-proto"
-  digest = "1:e695b72224534b45e70034a2b4a36d149998984459ab97758386fbe404e15d53"
+  digest = "1:b99be96358308c0ad67c6bdfbccd738357c022c31f84330f69b198d1fb40bd8d"
   name = "github.com/Ankr-network/dccn-common"
   packages = [
     "protos/common",
@@ -12,7 +12,7 @@
     "protos/usermgr/v1/grpc",
   ]
   pruneopts = "UT"
-  revision = "5e94067882c9fad3088230de7d62e592417b1952"
+  revision = "501202cceeced52364d2c29692edd5b87662d6a5"
 
 [[projects]]
   digest = "1:a54465f90211f1c17ae03483b275175f6b69cd2303d7f179f651e8c05f86802e"
