@@ -11,9 +11,10 @@ import (
 	"github.com/Ankr-network/dccn-midway/util"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	metadata "google.golang.org/grpc/metadata"
 )
 
-var ENDPOINT string
+var ENDPOINT string = "client-dev.dccn.ankr.network:50051"
 
 var users = map[string]string{
 	"user1": "password1",
@@ -22,25 +23,30 @@ var users = map[string]string{
 
 // Create a struct that models the structure of a user, both in the request body, and in the DB
 type Credentials struct {
-	Password string `json:"password"`
-	Username string `json:"username"`
-	Name     string `json:"name"`
-	Nickname string `json:"nickname"`
+	Password string `json:"Password"`
+	Email string `json:"Email"`
+	Name     string `json:"Name"`
+	Nickname string `json:"Nickname"`
 }
 
+type RefreshToken struct{
+	RefreshTokenValue string `json:"RefreshToken"`
+}
+
+
 func Signin(w http.ResponseWriter, r *http.Request) {
-	Creds := usermgr.User{}
+	var NewUser Credentials
 	// Get the JSON body and decode into credentials
-	err := json.NewDecoder(r.Body).Decode(&Creds)
+	err := json.NewDecoder(r.Body).Decode(&NewUser)
 	if err != nil {
 		// If the structure of the body is wrong, return an HTTP error
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 		return
 	}
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
 		log.Info("did not connect: ", err)
 	}
 	defer func(conn *grpc.ClientConn) {
@@ -48,74 +54,77 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 			log.Println(err.Error())
 		}
 	}(conn)
-
 	userClient := usermgr.NewUserMgrClient(conn)
-	fmt.Printf("Email: %s \n", Creds.Email)
-	fmt.Printf("password: %s \n", Creds.Password)
+	log.Printf("Email: %s \n", NewUser.Email)
+	log.Printf("password: %s \n", NewUser.Password)
 
-	rsp, err := userClient.Login(context.TODO(), &usermgr.LoginRequest{Email: Creds.Email, Password: Creds.Password})
+	rsp, err := userClient.Login(context.TODO(), &usermgr.LoginRequest{Email: NewUser.Email, Password: NewUser.Password})
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! %s\n", err)
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		log.Printf("Something went wrong! %s\n", err)
 		return
 	}
 
-	log.Printf("login Success: %s\n", rsp.Token)
-	if rsp.Error != nil {
-		fmt.Printf("Something went wrong! In hub %s\n", rsp.Error)
+	log.Printf("login Successful!")
+	JsonAuthenticationResult, err := json.Marshal(rsp.AuthenticationResult)
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		log.Printf("Something went wrong in Marshall Request! %s\n", err)
 		return
 	}
-	sessionToken := rsp.Token
-	w.Write([]byte(fmt.Sprintf("%s", sessionToken)))
+	w.Write(JsonAuthenticationResult)
+	JsonUser, err := json.Marshal(rsp.User)
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		log.Printf("Something went wrong in Marshall Request! %s\n", err)
+		return
+	}
+	w.Write(JsonUser)
 }
 
 func Signup(w http.ResponseWriter, r *http.Request) {
-	Creds := usermgr.User{}
+	var Creds Credentials
 	// Get the JSON body and decode into credentials
 	err := json.NewDecoder(r.Body).Decode(&Creds)
 	if err != nil {
 		// If the structure of the body is wrong, return an HTTP error
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 		return
 	}
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
+		w.Write([]byte(err.Error()))
 		log.Info("did not connect: ", err)
-		w.WriteHeader(http.StatusUnauthorized)
+		http.Error(w, util.ParseError(err),http.StatusUnauthorized)
 	}
 	defer func(conn *grpc.ClientConn) {
 		if err := conn.Close(); err != nil {
-			log.Println(err.Error())
-			w.WriteHeader(http.StatusBadRequest)
+			http.Error(w, util.ParseError(err), http.StatusBadRequest)
 			return
 		}
 	}(conn)
 	userClient := usermgr.NewUserMgrClient(conn)
-	fmt.Printf("Email: %s \n", Creds.Email)
-	fmt.Printf("password: %s \n", Creds.Password)
-
-	_, err = userClient.Register(context.Background(), &Creds)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		log.Info(err)
-		log.Printf("Something went wrong! \n")
-	} else {
-		log.Printf("Register Success!")
+	log.Printf("Email: %s \n", Creds.Email)
+	log.Printf("password: %s \n", Creds.Password)
+	attribute := usermgr.UserAttributes{
+		Name: Creds.Name,
 	}
+	_, err = userClient.Register(context.Background(), &usermgr.RegisterRequest{Password: Creds.Password, User: &usermgr.User{Email: Creds.Email, Attributes: &attribute}})
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		log.Printf("Something went wrong! \n")
+		return
+	}
+	log.Printf("Register Success!")
+	w.Write([]byte("Register Success!"))
 }
 
 func Welcome(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
-		if err == http.ErrNoCookie {
-			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 		return
 	}
 	sessionToken := c
@@ -123,35 +132,82 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 }
 
 func Refresh(w http.ResponseWriter, r *http.Request) {
+	var refreshtoken RefreshToken
+	err := json.NewDecoder(r.Body).Decode(&refreshtoken)
+	if err != nil {
+		// If the structure of the body is wrong, return an HTTP error
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		return
+	}
+
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+		return
+	}
+	defer func(conn *grpc.ClientConn) {
+		if err := conn.Close(); err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		}
+	}(conn)
+	userClient := usermgr.NewUserMgrClient(conn)
+
+	rsp, err := userClient.RefreshSession(context.Background(), &usermgr.RefreshToken{RefreshToken: refreshtoken.RefreshTokenValue})
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+		log.Printf("Something went wrong! \n %s", err)
+		return
+	}
+
+	log.Printf("Refresh Success!")
+	JsonAuthenticationResult, err := json.Marshal(rsp)
+	w.Write(JsonAuthenticationResult)
+}
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	var refreshtoken RefreshToken
+	err := json.NewDecoder(r.Body).Decode(&refreshtoken)
+	if err != nil {
+		// If the structure of the body is wrong, return an HTTP error
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		return
+	}
+
 	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
 		if err == errors.New("Error! No sessionToken") {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Error(w, util.ParseError(err), http.StatusUnauthorized)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 		return
 	}
 	sessionToken := c
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+		return
 	}
 	defer func(conn *grpc.ClientConn) {
 		if err := conn.Close(); err != nil {
-			log.Println(err.Error())
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 		}
 	}(conn)
-	userClient := usermgr.NewUserMgrClient(conn)
 
-	_, err = userClient.VerifyAndRefreshToken(context.Background(), &usermgr.Token{Token: sessionToken})
+	dc := usermgr.NewUserMgrClient(conn)
+	md := metadata.New(map[string]string{
+		"token": sessionToken,
+	})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+
+	_, err = dc.Logout(ctx, &usermgr.RefreshToken{RefreshToken: refreshtoken.RefreshTokenValue})
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Printf("Something went wrong! \n %s", err)
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+		log.Printf("Something went wrong! \n %s", err)
 		return
 	}
 
-	log.Printf("Refresh Success!")
-	w.Write([]byte(fmt.Sprintf("%s", sessionToken)))
+	log.Printf("Logout Success!")
+	w.Write([]byte("Logout Success!"))
 }

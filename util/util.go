@@ -21,3 +21,14 @@ func SessionTokenValue(w http.ResponseWriter, r *http.Request) (string, error) {
 	sessionToken := sessionTokenarray[1]
 	return sessionToken, nil
 }
+
+
+func ParseError(err error) string{
+	s1 := err.Error()
+	index := strings.Index(s1, "desc")
+	s2 := s1[index+7:]
+	//index2 := strings.Index(s2, "\"")
+	//s3 := s2[:index2]
+	return s2
+   }
+   

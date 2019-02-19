@@ -7,12 +7,12 @@ info:
   # termsOfService: "http://swagger.io/terms/"
   contact:
     email: "stanley@ankr.network"
-host: "midway-stage.dccn.ankr.network"
+host: "localhost:8080"
 basePath: "/"
 schemes:
-- "https"
+- "http"
 paths:
-  /register:
+  /signup:
     post:
       tags:
       - "Authorization"
@@ -31,6 +31,8 @@ paths:
         schema:
           $ref: "#/definitions/Pet"
       responses:
+        200:
+          description: "Successful"
         405:
           description: "Invalid input"
       security:
@@ -38,7 +40,7 @@ paths:
         - "write:pets"
         - "read:pets"
     
-  /user/login:
+  /login:
     get:
       tags:
       - "user"
@@ -180,35 +182,16 @@ definitions:
     - "name"
     - "photoUrls"
     properties:
-      id:
-        type: "integer"
-        format: "int64"
-      category:
-        $ref: "#/definitions/Category"
-      name:
+      Email:
         type: "string"
-        example: "doggie"
-      photoUrls:
-        type: "array"
-        xml:
-          name: "photoUrl"
-          wrapped: true
-        items:
-          type: "string"
-      tags:
-        type: "array"
-        xml:
-          name: "tag"
-          wrapped: true
-        items:
-          $ref: "#/definitions/Tag"
-      status:
+        example: "testuser@ankr.network"
+      Name:
         type: "string"
-        description: "pet status in the store"
-        enum:
-        - "available"
-        - "pending"
-        - "sold"
+        example: "ankrtest"
+      Password:
+        type: "string"
+        example: "11111111"
+
     xml:
       name: "Pet"
   ApiResponse:
