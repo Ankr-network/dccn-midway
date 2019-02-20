@@ -18,7 +18,6 @@ import (
 )
 
 type Task struct {
-	UserID       string `json:"UserID"`
 	Name         string `json:"Name"`
 	ID           string `json:"ID"`
 	Type         string `json:"Type"`
@@ -82,7 +81,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	task := common_proto.Task{
-		Id:       	  Heretask.Id,
+		Id:       	  Heretask.ID,
 		Name:         Heretask.Name,
 		Attributes:   &attribute,
 		DataCenterName: Heretask.DataCenterName,
