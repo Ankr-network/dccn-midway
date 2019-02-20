@@ -13,7 +13,7 @@ RUN go install -v -ldflags="-s -w \
     -X main.version=$(git rev-parse --abbrev-ref HEAD) \
     -X main.commit=$(git rev-parse --short HEAD) \
     -X main.date=$(date +%Y-%m-%dT%H:%M:%S%z) \
-    -X handlers/handlers.ENDPOINT=${URL_BRANCH}"
+    -X github.com/Ankr-network/dccn-midway/handlers.ENDPOINT=${URL_BRANCH}"
 
 # Build image, alpine offers more possibilities than scratch
 FROM alpine
