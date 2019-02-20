@@ -4,19 +4,18 @@ info:
     This is the API description of Ankr Network's DCCN midway
   version: "1.0.0"
   title: "Ankr Midway"
-  # termsOfService: "http://swagger.io/terms/"
   contact:
     email: "stanley@ankr.network"
-host: "localhost:8080"
+host: "midway-stage.dccn.ankr.network"
 basePath: "/"
 schemes:
-- "http"
+- "https"
 paths:
   /signup:
     post:
       tags:
       - "Authorization"
-      summary: "Add a new pet to the store"
+      summary: "Register a new account"
       description: ""
       operationId: "register"
       consumes:
@@ -25,22 +24,16 @@ paths:
       - "application/json"
       parameters:
       - in: "body"
-        name: "body"
+        name: "email"
         description: "Pet object that needs to be added to the store"
         required: true
         schema:
           $ref: "#/definitions/Pet"
       responses:
-        200:
-          description: "Successful"
-        405:
+        400:
           description: "Invalid input"
-      security:
-      - petstore_auth:
-        - "write:pets"
-        - "read:pets"
     
-  /login:
+  /user/login:
     get:
       tags:
       - "user"
@@ -104,106 +97,7 @@ securityDefinitions:
     type: "apiKey"
     name: "api_key"
     in: "header"
-definitions:
-  Order:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      petId:
-        type: "integer"
-        format: "int64"
-      quantity:
-        type: "integer"
-        format: "int32"
-      shipDate:
-        type: "string"
-        format: "date-time"
-      status:
-        type: "string"
-        description: "Order Status"
-        enum:
-        - "placed"
-        - "approved"
-        - "delivered"
-      complete:
-        type: "boolean"
-        default: false
-    xml:
-      name: "Order"
-  Category:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Category"
-  User:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      username:
-        type: "string"
-      firstName:
-        type: "string"
-      lastName:
-        type: "string"
-      email:
-        type: "string"
-      password:
-        type: "string"
-      phone:
-        type: "string"
-      userStatus:
-        type: "integer"
-        format: "int32"
-        description: "User Status"
-    xml:
-      name: "User"
-  Tag:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Tag"
-  Pet:
-    type: "object"
-    required:
-    - "name"
-    - "photoUrls"
-    properties:
-      Email:
-        type: "string"
-        example: "testuser@ankr.network"
-      Name:
-        type: "string"
-        example: "ankrtest"
-      Password:
-        type: "string"
-        example: "11111111"
 
-    xml:
-      name: "Pet"
-  ApiResponse:
-    type: "object"
-    properties:
-      code:
-        type: "integer"
-        format: "int32"
-      type:
-        type: "string"
-      message:
-        type: "string"
 externalDocs:
   description: "Find out more about Ankr Network"
   url: "https://www.ankr.network"
