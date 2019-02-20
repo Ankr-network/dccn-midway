@@ -4,26 +4,38 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gomodule/redigo/redis"
+	"github.com/Ankr-network/dccn-midway/handlers"
 	"github.com/gorilla/mux"
 )
 
-var cache redis.Conn
 
 func main() {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/login", Signin)
-	r.HandleFunc("/signup", Signup)
-	r.HandleFunc("/welcome", Welcome)
-	r.HandleFunc("/refresh", Refresh)
-	r.HandleFunc("/create", CreateTask)
-	r.HandleFunc("/update", UpdateTask)
-	r.HandleFunc("/list", ListTask)
-	r.HandleFunc("/delete", CancelTask)
-	r.HandleFunc("/purge", PurgeTask)
-	r.HandleFunc("/dclist", DataCenterList)
-	r.HandleFunc("/taskdetail", TaskDetail)
+	r.HandleFunc("/login", handlers.Signin)
+	r.HandleFunc("/signup", handlers.Signup)
+//	r.HandleFunc("/welcome", handlers.Welcome)
+	r.HandleFunc("/refresh", handlers.Refresh)
+	r.HandleFunc("/logout", handlers.Logout)
+	r.HandleFunc("/create", handlers.CreateTask)
+	r.HandleFunc("/update", handlers.UpdateTask)
+	r.HandleFunc("/list", handlers.ListTask)
+	r.HandleFunc("/delete", handlers.CancelTask)
+	r.HandleFunc("/purge", handlers.PurgeTask)
+	r.HandleFunc("/dclist", handlers.DataCenterList)
+	r.HandleFunc("/confirmregistration", handlers.ConfirmRegistration)
+	r.HandleFunc("/forgotpassword", handlers.ForgotPassword)
+	r.HandleFunc("/confirmpassword", handlers.ConfirmPassword)
+	r.HandleFunc("/changepassword", handlers.ChangePassword)
+	r.HandleFunc("/changeemail", handlers.ChangeEmail)
+	r.HandleFunc("/refresh", handlers.Refresh)
+	r.HandleFunc("/updateattribute", handlers.UpdateAttribute)
+	
+	//r.HandleFunc("/taskdetail", handlers.TaskDetail)
+	//http.HandleFunc("/confirmregistration", handlers.confirmRegistration)
+	//http.HandleFunc("/forgotpassword", handlers.forgotPassword)
+	//http.HandleFunc("/confirmpassword", handlers.confirmPassword)
+	// start the server on port 8000
 	http.Handle("/", &MyServer{r})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
