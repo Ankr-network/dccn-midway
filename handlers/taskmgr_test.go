@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
 	common_proto "github.com/Ankr-network/dccn-common/protos/common"
 )
 
@@ -31,11 +30,11 @@ func checkReplicastatus(t *testing.T, client *http.Client, target int32, taskid 
 	//t.Log(newbody)
 	for i := range newbody {
 		if newbody[i].Id == taskid {
-			if newbody[i].Replica == target {
+			if newbody[i].Attributes.Replica == target {
 				t.Log("Find the task and check the number of replica, it is the same!", taskid)
 				return true
 			}
-			t.Log("Find the task and check the number of replica, it is not the same!", newbody[i].Replica)
+			t.Log("Find the task and check the number of replica, it is not the same!", newbody[i].Attributes.Replica)
 			return false
 		}
 	}
@@ -75,7 +74,7 @@ func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskSt
 
 func ClientLogin(t *testing.T, client *http.Client) string {
 
-	var jsonStrlogin = []byte(`{"username":"testuser","email":"testuser2@mailinator.com", "password":"1111111"}`)
+	var jsonStrlogin = []byte(`{"username":"testuser","email":"testuser28@mailinator.com", "password":"111111nn"}`)
 	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
 	reqlogin.Header.Set("X-Custom-Header", "myvalue")
 	reqlogin.Header.Set("Content-Type", "application/json")
@@ -148,7 +147,7 @@ func TestCreateTask(t *testing.T) {
 		t.Error("could not marshal JSON")
 	}
 	reqPurge, err := http.NewRequest("POST", urlPurge, bytes.NewBuffer(jsonStrPurge))
-	//reqPurge.Header.Add("Authorization", sessionTokenarray)
+	reqPurge.Header.Add("Authorization", sessionTokenarray)
 
 	respPurge, err := client.Do(reqPurge)
 	if err != nil {
@@ -236,7 +235,7 @@ func TestCreateTaskDouble(t *testing.T) {
 		t.Error("could not marshal JSON")
 	}
 	reqPurge, err := http.NewRequest("POST", urlPurge, bytes.NewBuffer(jsonStrPurge))
-	//reqPurge.Header.Add("Authorization", sessionTokenarray)
+	reqPurge.Header.Add("Authorization", sessionTokenarray)
 
 	respPurge, err := client.Do(reqPurge)
 	if err != nil {
@@ -308,14 +307,13 @@ func TestUpdateTask(t *testing.T) {
 	checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, string(body), sessionTokenarray)
 	//payload := strings.NewReader("{\"id\":\"85e9d737-a8c1-4d02-86b4-81844f322a19\",\"user_id\":\"dba2456a-fe2a-4220-acbf-eafccf5b8af8\",\"name\":\"TestforPurgetask\",\"type\":\"web\",\"image\":\"nginx:1.12\",\"data_center\":\"Datacenter\",\"data_center_id\":\"10\",\"status\":7}")
 	//time.Sleep(time.Millisecond*10000)
-	jsonStrUpdate := common_proto.Task{
-		UserId:       "123",
+	jsonStrUpdate := Task{
 		Name:         "xiaoWang",
-		Id:           string(body),
+		ID:           string(body),
 		Image:        "nginx:1.12",
+		Type:			"2",
 		Replica:      1,
-		DataCenter:   "aslkdfjas",
-		DataCenterId: "10",
+		DataCenterName:   "aslkdfjas",
 	}
 	jsonUpdateList, _ := json.Marshal(jsonStrUpdate)
 	reqUpdate, err := http.NewRequest("POST", urlUpdate, bytes.NewBuffer(jsonUpdateList))
@@ -466,12 +464,13 @@ func TestPurgeTask(t *testing.T) {
 	t.Log("URL for Create Task:>", urlCreate)
 	sessionTokenarray := ClientLogin(t, client)
 	var jsonStrCreate = []byte(`{"UserId": "123",
-	"Name": "TestforPurgetask",
+	"Name": "testforpurgetask",
 	"Id": "12",
     "Type": "web",
     "Image": "nginx:1.12",
-	"Replica": 1,
+	"Replica": 1
 	}`)
+	
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
 	reqCreate.Header.Add("Authorization", sessionTokenarray)
 
@@ -577,11 +576,15 @@ func TestPurgeTaskDoublePurge(t *testing.T) { //No man ever purges in the same t
 	if respPurge.Status != "200 OK" {
 		t.Error("Purge Status Error! Cannot login")
 	}
-	respPurge1, err := client.Do(reqPurge)
+	reqPurge1, err := http.NewRequest("POST", urlPurge, bytes.NewBuffer(jsonStrPurge))
+	reqPurge1.Header.Add("Authorization", sessionTokenarray)
+	respPurge1, err := client.Do(reqPurge1)
 	if err != nil {
+		t.Error("Purge Status Error! Purge Unsuccessful")
 		//panic(err)
-		t.Error("err")
+		//t.Error("err")
 	}
+
 	defer respPurge1.Body.Close()
 
 	if respPurge1.Status == "200 OK" {
@@ -725,7 +728,7 @@ func TestCancelTaskDoubleCancel(t *testing.T) { //No man ever cancels in the sam
 		//panic(err)
 		t.Error("err")
 	}
-	defer respCancel1.Body.Close()
+	//defer respCancel1.Body.Close()
 
 	if respCancel1.Status == "200 OK" {
 		t.Error("Cancel Status Error! Cancel should not be successful")
