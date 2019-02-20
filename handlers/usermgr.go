@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	usermgr "github.com/Ankr-network/dccn-common/protos/usermgr/v1/grpc"
 	"github.com/Ankr-network/dccn-midway/util"
@@ -118,7 +117,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Register Success!"))
 }
 
-func Welcome(w http.ResponseWriter, r *http.Request) {
+/*func Welcome(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	c, err := util.SessionTokenValue(w, r)
 	if err != nil {
@@ -127,7 +126,7 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 	}
 	sessionToken := c
 	w.Write([]byte(fmt.Sprintf("Welcome %s!", sessionToken)))
-}
+}*/
 
 func Refresh(w http.ResponseWriter, r *http.Request) {
 	var refreshtoken RefreshToken

@@ -2,8 +2,8 @@
 
 
 [[projects]]
-  branch = "feature/SWDEV-149-restructure-proto"
-  digest = "1:b99be96358308c0ad67c6bdfbccd738357c022c31f84330f69b198d1fb40bd8d"
+  branch = "develop"
+  digest = "1:4a0bd6a82dc15b91ae28c9455ea469eff2843ab68642161f0685bb7f05ea5127"
   name = "github.com/Ankr-network/dccn-common"
   packages = [
     "protos/common",
@@ -12,7 +12,7 @@
     "protos/usermgr/v1/grpc",
   ]
   pruneopts = "UT"
-  revision = "501202cceeced52364d2c29692edd5b87662d6a5"
+  revision = "db71ec855cc7229fa526c5f228be3c3b33c0aade"
 
 [[projects]]
   digest = "1:a54465f90211f1c17ae03483b275175f6b69cd2303d7f179f651e8c05f86802e"
@@ -77,7 +77,7 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "74369b46fc6756741c016591724fd1cb8e26845f"
+  revision = "a4c6cb3142f211c99e4bf4cd769535b29a9b616f"
 
 [[projects]]
   branch = "master"
@@ -104,7 +104,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "d0b11bdaac8adb652bff00e49bcacf992835621a"
+  revision = "90b0e4468f9980bf79a2290394adaf7f045c5d24"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -135,7 +135,7 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "bd968387e4aa590b3c6e4ba38ecac1ed314d43ad"
+  revision = "082222b4a5c572e33e82ee9162d1352c7cf38682"
 
 [[projects]]
   digest = "1:9ab5a33d8cb5c120602a34d2e985ce17956a4e8c2edce7e6961568f95e40c09a"
