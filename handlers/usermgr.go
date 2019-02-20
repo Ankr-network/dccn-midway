@@ -91,7 +91,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 		return
 	}
-
+	log.Info(ENDPOINT)
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
 		w.Write([]byte(err.Error()))
