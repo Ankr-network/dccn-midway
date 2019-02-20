@@ -7,14 +7,14 @@ import (
 	"github.com/Ankr-network/dccn-midway/handlers"
 	"github.com/gorilla/mux"
 )
-var ENDPOINT string
+
 
 func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/login", handlers.Signin)
 	r.HandleFunc("/signup", handlers.Signup)
-	r.HandleFunc("/welcome", handlers.Welcome)
+//	r.HandleFunc("/welcome", handlers.Welcome)
 	r.HandleFunc("/refresh", handlers.Refresh)
 	r.HandleFunc("/logout", handlers.Logout)
 	r.HandleFunc("/create", handlers.CreateTask)
