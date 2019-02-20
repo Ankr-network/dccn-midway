@@ -6,14 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-
 	usermgr "github.com/Ankr-network/dccn-common/protos/usermgr/v1/grpc"
 	"github.com/Ankr-network/dccn-midway/util"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	metadata "google.golang.org/grpc/metadata"
 )
-
 var ENDPOINT string
 
 var users = map[string]string{

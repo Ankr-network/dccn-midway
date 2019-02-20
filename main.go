@@ -7,6 +7,7 @@ import (
 	"github.com/Ankr-network/dccn-midway/handlers"
 	"github.com/gorilla/mux"
 )
+var ENDPOINT string
 
 func main() {
 	r := mux.NewRouter()
