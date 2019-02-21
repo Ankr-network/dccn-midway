@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 	metadata "google.golang.org/grpc/metadata"
 )
-var ENDPOINT string
+var ENDPOINT string = "client-dev.dccn.ankr.network:50051"
 
 var users = map[string]string{
 	"user1": "password1",
@@ -63,14 +63,14 @@ func Signin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("login Successful!")
-	JsonAuthenticationResult, err := json.Marshal(rsp.AuthenticationResult)
+	/*JsonAuthenticationResult, err := json.Marshal(rsp.AuthenticationResult)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 		log.Printf("Something went wrong in Marshall Request! %s\n", err)
 		return
-	}
-	w.Write(JsonAuthenticationResult)
-	JsonUser, err := json.Marshal(rsp.User)
+	}*/
+	//w.Write(JsonAuthenticationResult)
+	JsonUser, err := json.Marshal(rsp)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 		log.Printf("Something went wrong in Marshall Request! %s\n", err)

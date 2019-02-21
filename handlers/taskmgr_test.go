@@ -74,7 +74,7 @@ func checkIDstatus(t *testing.T, client *http.Client, target common_proto.TaskSt
 
 func ClientLogin(t *testing.T, client *http.Client) string {
 
-	var jsonStrlogin = []byte(`{"username":"testuser","email":"testuser28@mailinator.com", "password":"111111nn"}`)
+	var jsonStrlogin = []byte(`{"Username":"testuser","Email":"testankr28@mailinator.com", "Password":"111111nn"}`)
 	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
 	reqlogin.Header.Set("X-Custom-Header", "myvalue")
 	reqlogin.Header.Set("Content-Type", "application/json")
@@ -601,7 +601,7 @@ func TestCancelTask(t *testing.T) {
 	sessionTokenarray := ClientLogin(t, client)
 
 	var jsonStrCreate = []byte(`{"UserId": "123",
-	"Name": "TestforPurgetask",
+	"Name": "testforcanceltask",
 	"Id": "12",
     "Type": "web",
     "Image": "nginx:1.12",
@@ -735,3 +735,76 @@ func TestCancelTaskDoubleCancel(t *testing.T) { //No man ever cancels in the sam
 	}
 
 }
+
+func TestChangePassword(t *testing.T) {
+	t.Log("URL for login:>", urlLogin)
+	cookieJar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: cookieJar,
+	}
+
+	t.Log("URL for Login:>", urlLogin)
+	sessionTokenarray := ClientLogin(t, client)
+
+	var jsonStrChangePW = []byte(`{"OldPassword": "111111nn", "NewPassword":"nn111111"}`)
+	reqChangePW, err := http.NewRequest("POST", urlChangePW, bytes.NewBuffer(jsonStrChangePW))
+	reqChangePW.Header.Add("Authorization", sessionTokenarray)
+
+	respChangePW, err := client.Do(reqChangePW)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+	}
+	defer respChangePW.Body.Close()
+
+	t.Log("Update ChangePW Status:", respChangePW.Status)
+	if respChangePW.Status != "200 OK" {
+		t.Error("Error! Cannot update the user attribute")
+	}
+	ClientLogin(t, client)
+
+	var jsonStrChangePW1 = []byte(`{"OldPassword": "nn111111", "NewPassword":"111111nn"}`)
+	reqChangePW1, err := http.NewRequest("POST", urlChangePW, bytes.NewBuffer(jsonStrChangePW1))
+	reqChangePW1.Header.Add("Authorization", sessionTokenarray)
+
+	respChangePW1, err := client.Do(reqChangePW1)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+	}
+	defer respChangePW1.Body.Close()
+
+	t.Log("Update ChangePW Status:", respChangePW1.Status)
+	if respChangePW1.Status != "200 OK" {
+		t.Error("Error! Cannot update the user attribute")
+	}
+}
+/*
+func TestUpdateattribute(t *testing.T) {
+	t.Log("URL for login:>", urlLogin)
+	cookieJar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: cookieJar,
+	}
+
+	t.Log("URL for List Task:>", urlList)
+	sessionTokenarray := ClientLogin(t, client)
+
+	var jsonStrList = []byte(`{}`)
+	reqList, err := http.NewRequest("POST", urlList, bytes.NewBuffer(jsonStrList))
+	reqList.Header.Add("Authorization", sessionTokenarray)
+
+	respList, err := client.Do(reqList)
+	if err != nil {
+		//panic(err)
+		t.Error("err")
+	}
+	defer respList.Body.Close()
+
+	t.Log("Update response Status:", respList.Status)
+	if respList.Status != "200 OK" {
+		t.Error("Error! Cannot update the user attribute")
+	}
+	body, _ := ioutil.ReadAll(respList.Body)
+	t.Log("Update response Body:", string(body))
+}*/

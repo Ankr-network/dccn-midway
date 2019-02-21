@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	ADDRESS = "http://localhost:8080"
+	ADDRESS = "https://midway-stage.dccn.ankr.network"
 )
 
 var (
@@ -20,6 +20,7 @@ var (
 	urlCancel = fmt.Sprintf("%s/delete", ADDRESS)
 	urlList   = fmt.Sprintf("%s/list", ADDRESS)
 	urlSignup = fmt.Sprintf("%s/signup", ADDRESS)
+	urlChangePW = fmt.Sprintf("%s/changepassword", ADDRESS)
 )
 
 type Person struct {
@@ -30,7 +31,7 @@ type Person struct {
 
 func TestSignup(t *testing.T) {
 	t.Log("URL for signup:>", urlSignup)
-	var jsonStrSignup = []byte(`{"username":"testuser","email":"testuser28@mailinator.com", "password":"111111nn"}`)
+	var jsonStrSignup = []byte(`{"Name":"testuser","Email":"testuser128@mailinator.com", "Password":"111111nn"}`)
 	reqsignup, err := http.NewRequest("POST", urlSignup, bytes.NewBuffer(jsonStrSignup))
 	reqsignup.Header.Set("X-Custom-Header", "myvalue")
 	reqsignup.Header.Set("Content-Type", "application/json")

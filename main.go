@@ -30,8 +30,10 @@ func main() {
 	r.HandleFunc("/changeemail", handlers.ChangeEmail)
 	r.HandleFunc("/refresh", handlers.Refresh)
 	r.HandleFunc("/updateattribute", handlers.UpdateAttribute)
-	
-	//r.HandleFunc("/taskdetail", handlers.TaskDetail)
+	r.HandleFunc("/taskoverview", handlers.TaskOverview)
+	r.HandleFunc("/taskleaderboard", handlers.TaskLeaderBoard)
+	r.HandleFunc("/networkinfo", handlers.NetworkInfo)
+	r.HandleFunc("/dcleaderboard", handlers.DCLeaderBoard)
 	//http.HandleFunc("/confirmregistration", handlers.confirmRegistration)
 	//http.HandleFunc("/forgotpassword", handlers.forgotPassword)
 	//http.HandleFunc("/confirmpassword", handlers.confirmPassword)
