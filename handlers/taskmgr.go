@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
+//	"fmt"
 	"net/http"
 	"time"
 
@@ -120,7 +120,13 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Info("Task created successfully. \n", tcrp.TaskId)
-	w.Write([]byte(fmt.Sprintf("%s", tcrp.TaskId)))
+	JsonUser, err := json.Marshal(tcrp)
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		log.Printf("Something went wrong in Marshall Request! %s\n", err)
+		return
+	}
+	w.Write(JsonUser)
 
 }
 

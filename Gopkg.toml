@@ -26,7 +26,7 @@
 
 
 [[constraint]]
-  branch = "feature/SWDEV-149-dashboard"
+  branch = "develop"
   name = "github.com/Ankr-network/dccn-common"
 
 
