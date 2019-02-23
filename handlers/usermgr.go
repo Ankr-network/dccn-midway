@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 	metadata "google.golang.org/grpc/metadata"
 )
-var ENDPOINT string = "client-dev.dccn.ankr.network:50051"
+var ENDPOINT string
 
 var users = map[string]string{
 	"user1": "password1",
