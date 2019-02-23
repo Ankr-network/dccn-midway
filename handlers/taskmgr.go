@@ -472,3 +472,187 @@ func DataCenterList(w http.ResponseWriter, r *http.Request) {
 		log.Println(Datacenters[i])
 	}
 }
+
+
+func TaskOverview(w http.ResponseWriter, r *http.Request) {
+	// We can obtain the session token from the requests cookies, which come with every request
+	log.Printf("Task Overview")
+	c, err := util.SessionTokenValue(w, r)
+	if err != nil {
+		if err == errors.New("Error! No sessionToken") {
+			http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+			return
+		}
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		return
+	}
+	sessionToken := c
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
+	if err != nil {
+		log.Info("did not connect: ", err)
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+	}
+
+	defer conn.Close()
+	dc := taskmgr.NewTaskMgrClient(conn)
+	md := metadata.New(map[string]string{
+		"token": sessionToken,
+	})
+
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	tokenContext, cancel := context.WithTimeout(ctx, 180*time.Second)
+	defer cancel()
+
+	rsp, err := dc.TaskOverview(tokenContext, &common_proto.Empty{})
+	if err != nil {
+		log.Info(err.Error())
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+		return
+	}
+	jsonDcList, err := json.Marshal(rsp)
+	if err != nil {
+		log.Info("Marshal Error", err)
+		http.Error(w, util.ParseError(err), http.StatusNotFound)
+	}
+	w.Write(jsonDcList)
+}
+
+func NetworkInfo(w http.ResponseWriter, r *http.Request) {
+	// We can obtain the session token from the requests cookies, which come with every request
+	log.Printf("Network Information")
+	c, err := util.SessionTokenValue(w, r)
+	if err != nil {
+		if err == errors.New("Error! No sessionToken") {
+			http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+			return
+		}
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		return
+	}
+	sessionToken := c
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
+	if err != nil {
+		log.Info("did not connect: ", err)
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+	}
+
+	defer conn.Close()
+	dc := dcmgr.NewDCAPIClient(conn)
+	md := metadata.New(map[string]string{
+		"token": sessionToken,
+	})
+
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	tokenContext, cancel := context.WithTimeout(ctx, 180*time.Second)
+	defer cancel()
+
+	rsp, err := dc.NetworkInfo(tokenContext, &common_proto.Empty{})
+	if err != nil {
+		log.Info(err.Error())
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+		return
+	}
+	jsonDcList, err := json.Marshal(rsp)
+	if err != nil {
+		log.Info("Marshal Error", err)
+		http.Error(w, util.ParseError(err), http.StatusNotFound)
+	}
+	w.Write(jsonDcList)
+}
+
+func TaskLeaderBoard(w http.ResponseWriter, r *http.Request) {
+	// We can obtain the session token from the requests cookies, which come with every request
+	log.Printf("Task LeaderBoard")
+	c, err := util.SessionTokenValue(w, r)
+	if err != nil {
+		if err == errors.New("Error! No sessionToken") {
+			http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+			return
+		}
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		return
+	}
+	sessionToken := c
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
+	if err != nil {
+		log.Info("did not connect: ", err)
+	}
+
+	defer conn.Close()
+	dc := taskmgr.NewTaskMgrClient(conn)
+	md := metadata.New(map[string]string{
+		"token": sessionToken,
+	})
+
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	tokenContext, cancel := context.WithTimeout(ctx, 180*time.Second)
+	defer cancel()
+
+	LeaderBoard := make([]*taskmgr.TaskLeaderBoardDetail, 0)
+	rsp, err := dc.TaskLeaderBoard(tokenContext, &common_proto.Empty{})
+	if err != nil {
+		log.Info(err.Error())
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+		return
+	}
+	LeaderBoard = append(LeaderBoard, rsp.List...)
+	if len(LeaderBoard) == 0 {
+		log.Printf("no LeaderBoard is running now")
+		return
+	}
+	log.Println(len(LeaderBoard), "leaderboard is running now")
+	jsonLeaderBoard, _ := json.Marshal(LeaderBoard)
+	w.Write(jsonLeaderBoard)
+	for i := range LeaderBoard {
+		log.Println(LeaderBoard[i])
+	}
+}
+
+
+func DCLeaderBoard(w http.ResponseWriter, r *http.Request) {
+	// We can obtain the session token from the requests cookies, which come with every request
+	log.Printf("DataCenter LeaderBoard")
+	c, err := util.SessionTokenValue(w, r)
+	if err != nil {
+		if err == errors.New("Error! No sessionToken") {
+			http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+			return
+		}
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		return
+	}
+	sessionToken := c
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
+	if err != nil {
+		log.Info("did not connect: ", err)
+	}
+
+	defer conn.Close()
+	dc := dcmgr.NewDCAPIClient(conn)
+	md := metadata.New(map[string]string{
+		"token": sessionToken,
+	})
+
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	tokenContext, cancel := context.WithTimeout(ctx, 180*time.Second)
+	defer cancel()
+
+	LeaderBoard := make([]*dcmgr.DataCenterLeaderBoardDetail, 0)
+	rsp, err := dc.DataCenterLeaderBoard(tokenContext, &common_proto.Empty{})
+	if err != nil {
+		log.Info(err.Error())
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+		return
+	}
+	LeaderBoard = append(LeaderBoard, rsp.List...)
+	if len(LeaderBoard) == 0 {
+		log.Printf("no LeaderBoard is running now")
+		return
+	}
+	log.Println(len(LeaderBoard), "leaderboard is running now")
+	jsonLeaderBoard, _ := json.Marshal(LeaderBoard)
+	w.Write(jsonLeaderBoard)
+	for i := range LeaderBoard {
+		log.Println(LeaderBoard[i])
+	}
+}

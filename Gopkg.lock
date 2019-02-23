@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "develop"
-  digest = "1:4a0bd6a82dc15b91ae28c9455ea469eff2843ab68642161f0685bb7f05ea5127"
+  digest = "1:263fc152a540f04ccc00dedcb5c49d16b63a1727a4b5edb45a1a76a0cb0c1f8c"
   name = "github.com/Ankr-network/dccn-common"
   packages = [
     "protos/common",
@@ -12,7 +12,7 @@
     "protos/usermgr/v1/grpc",
   ]
   pruneopts = "UT"
-  revision = "db71ec855cc7229fa526c5f228be3c3b33c0aade"
+  revision = "f7b3d4c04419da810a93911b0a7432ebbd637a4c"
 
 [[projects]]
   digest = "1:a54465f90211f1c17ae03483b275175f6b69cd2303d7f179f651e8c05f86802e"
@@ -77,7 +77,7 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "a4c6cb3142f211c99e4bf4cd769535b29a9b616f"
+  revision = "ffb98f73852f696ea2bb21a617a5c4b3e067a439"
 
 [[projects]]
   branch = "master"
@@ -97,14 +97,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0d703f14f9bbbe1070ff0ce86d749dcbc9d68fb0ae554252c09bd4bb37a072e7"
+  digest = "1:80200f57d482f61334a482a046ddedbad77c04dbec6ab81a4e1b3c6adbdfadef"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "90b0e4468f9980bf79a2290394adaf7f045c5d24"
+  revision = "cd391775e71e684db52b63df9affd58269495083"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
