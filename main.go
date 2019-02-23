@@ -30,6 +30,7 @@ func main() {
 	r.HandleFunc("/changeemail", handlers.ChangeEmail)
 	r.HandleFunc("/refresh", handlers.Refresh)
 	r.HandleFunc("/updateattribute", handlers.UpdateAttribute)
+//	r.HandleFunc("/confirmemail", handlers.ConfirmEmail)
 	
 	//r.HandleFunc("/taskdetail", handlers.TaskDetail)
 	//http.HandleFunc("/confirmregistration", handlers.confirmRegistration)

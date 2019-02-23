@@ -9,8 +9,12 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"fmt"
 	common_proto "github.com/Ankr-network/dccn-common/protos/common"
 )
+type taskidstruct struct {
+	task_id string `json:"task_id"`
+}
 
 func checkReplicastatus(t *testing.T, client *http.Client, target int32, taskid string, sessionTokenarray string) bool {
 	t.Log("Checking the status of task ", taskid)
@@ -108,11 +112,11 @@ func TestCreateTask(t *testing.T) {
 	t.Log("URL for Create Task:>", urlCreate)
 	sessionTokenarray := ClientLogin(t, client)
 
-	var jsonStrCreate = []byte(`{"UserId": "123",
-	"Name": "testforcreatetask",
-    "Type": "web",
+	var jsonStrCreate = []byte(`{"Name": "updateuser",
+    "Type": "1",
     "Image": "nginx:1.12",
-	"Replica": 4
+	"Replica": 3,
+	"DataCenterName": "datacenter01"
 }`)
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
 	reqCreate.Header.Add("Authorization", sessionTokenarray)
@@ -130,14 +134,27 @@ func TestCreateTask(t *testing.T) {
 	}
 	body, _ := ioutil.ReadAll(respCreate.Body)
 	t.Log("Create Task Body:", string(body))
-	sbody := string(body)
-
-	time.Sleep(time.Millisecond * 3000)
+	var m map[string]interface{}
+    err = json.Unmarshal([]byte(body), &m)
+    if err != nil {
+        t.Error("err")
+    }
+    mm := make(map[string]string)
+    for k, v := range m {
+        mm[k] = fmt.Sprint(v)
+	}
+	sbody := mm["task_id"]
+	//body, _ := ioutil.ReadAll(respCreate.Body)
+	//t.Log("Create Task Body:", string(body))
+	//var Heretask taskidstruct
+	//err = json.NewDecoder(respCreate.Body).Decode(&Heretask)
+	//t.Log("Heretask:>", Heretask)
+	//time.Sleep(time.Millisecond * 3000)
 
 	if !checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray) {
 		t.Error("Tasks established faliure!")
 	}
-	if !checkReplicastatus(t, client, 4, sbody, sessionTokenarray) {
+	if !checkReplicastatus(t, client, 3, sbody, sessionTokenarray) {
 		t.Error("Tasks established faliure!")
 	}
 	//t.Log("Create Task Successfull!")
@@ -172,12 +189,12 @@ func TestCreateTaskDouble(t *testing.T) {
 	t.Log("URL for Create Task:>", urlCreate)
 	sessionTokenarray := ClientLogin(t, client)
 
-	var jsonStrCreate = []byte(`{"UserId": "123",
-	"Name": "testforcreatetask",
-	"Id": "12",
-    "Type": "web",
+	var jsonStrCreate = []byte(`{"Name": "updateuser",
+    "Type": "1",
     "Image": "nginx:1.12",
-	"Replica": 4}`)
+	"Replica": 3,
+	"DataCenterName": "datacenter01"
+}`)
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
 	reqCreate.Header.Add("Authorization", sessionTokenarray)
 
@@ -194,7 +211,16 @@ func TestCreateTaskDouble(t *testing.T) {
 	}
 	body, _ := ioutil.ReadAll(respCreate.Body)
 	t.Log("Create Task Body:", string(body))
-	sbody := string(body)
+	var m map[string]interface{}
+    err = json.Unmarshal([]byte(body), &m)
+    if err != nil {
+        t.Error("err")
+    }
+    mm := make(map[string]string)
+    for k, v := range m {
+        mm[k] = fmt.Sprint(v)
+	}
+	sbody := mm["task_id"]
 
 	time.Sleep(time.Millisecond * 3000)
 
@@ -255,14 +281,12 @@ func TestCreateTaskBADCred(t *testing.T) { //One cannot create task without logi
 	client := &http.Client{
 		Jar: cookieJar,
 	}
-	var jsonStrCreate = []byte(`{"UserId": "123",
-	"Name": "xiaowu",
-	"Id": "12",
-    "Type": "web",
+	var jsonStrCreate = []byte(`{"Name": "updateuser",
+    "Type": "1",
     "Image": "nginx:1.12",
-	"Replica": 1,
-	"DataCenter": "Datacenter01",
-	"DataCenterId": "10"}`)
+	"Replica": 3,
+	"DataCenterName": "datacenter01"
+}`)
 	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
 	reqCreate.Header.Set("X-Custom-Header", "myvalue")
 	reqCreate.Header.Set("Content-Type", "application/json")
@@ -291,8 +315,13 @@ func TestUpdateTask(t *testing.T) {
 
 	sessionTokenarray := ClientLogin(t, client)
 
-	payload := strings.NewReader("{\"id\":\"85e9d737-a8c1-4d02-86b4-81844f322a19\",\"user_id\":\"dba2456a-fe2a-4220-acbf-eafccf5b8af8\",\"name\":\"TestforPurgetask\",\"type\":\"web\",\"image\":\"nginx:1.12\",\"data_center\":\"Datacenter\",\"data_center_id\":\"10\",\"status\":7}")
-	reqCreate, err := http.NewRequest("POST", urlCreate, payload)
+	var jsonStrCreate = []byte(`{"Name": "updateuser",
+    "Type": "1",
+    "Image": "nginx:1.12",
+	"Replica": 3,
+	"DataCenterName": "datacenter01"
+}`)
+	reqCreate, err := http.NewRequest("POST", urlCreate, bytes.NewBuffer(jsonStrCreate))
 	reqCreate.Header.Add("Authorization", sessionTokenarray)
 	respCreate, err := client.Do(reqCreate)
 	if err != nil {
@@ -303,13 +332,23 @@ func TestUpdateTask(t *testing.T) {
 
 	body, _ := ioutil.ReadAll(respCreate.Body)
 	t.Log("Create Task Body:", string(body))
+	var m map[string]interface{}
+    err = json.Unmarshal([]byte(body), &m)
+    if err != nil {
+        t.Error("err")
+    }
+    mm := make(map[string]string)
+    for k, v := range m {
+        mm[k] = fmt.Sprint(v)
+	}
+	sbody := mm["task_id"]
 	//sbody := string(body)
-	checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, string(body), sessionTokenarray)
+	checkIDstatus(t, client, common_proto.TaskStatus_RUNNING, sbody, sessionTokenarray)
 	//payload := strings.NewReader("{\"id\":\"85e9d737-a8c1-4d02-86b4-81844f322a19\",\"user_id\":\"dba2456a-fe2a-4220-acbf-eafccf5b8af8\",\"name\":\"TestforPurgetask\",\"type\":\"web\",\"image\":\"nginx:1.12\",\"data_center\":\"Datacenter\",\"data_center_id\":\"10\",\"status\":7}")
 	//time.Sleep(time.Millisecond*10000)
 	jsonStrUpdate := Task{
 		Name:         "xiaoWang",
-		ID:           string(body),
+		ID:            sbody,
 		Image:        "nginx:1.12",
 		Type:			"2",
 		Replica:      1,

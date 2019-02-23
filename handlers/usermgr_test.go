@@ -30,7 +30,7 @@ type Person struct {
 
 func TestSignup(t *testing.T) {
 	t.Log("URL for signup:>", urlSignup)
-	var jsonStrSignup = []byte(`{"username":"testuser","email":"testuser28@mailinator.com", "password":"111111nn"}`)
+	var jsonStrSignup = []byte(`{"Name":"testuser","Email":"testuser28@mailinator.com", "Password":"111111nn"}`)
 	reqsignup, err := http.NewRequest("POST", urlSignup, bytes.NewBuffer(jsonStrSignup))
 	reqsignup.Header.Set("X-Custom-Header", "myvalue")
 	reqsignup.Header.Set("Content-Type", "application/json")
@@ -57,7 +57,7 @@ func TestSignin(t *testing.T) {
 	t.Log("URL for login:>", urlLogin)
 	client := &http.Client{}
 
-	var jsonStrlogin = []byte(`{"username":"testuser","email":"testuser28@mailinator.com", "password":"111111nn"}`)
+	var jsonStrlogin = []byte(`{"Name":"testuser","Email":"testuser28@mailinator.com", "Password":"111111nn"}`)
 	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
 	reqlogin.Header.Set("X-Custom-Header", "myvalue")
 	reqlogin.Header.Set("Content-Type", "application/json")
@@ -83,7 +83,7 @@ func TestSigninBAD(t *testing.T) {
 	t.Log("URL for login:>", urlLogin)
 	client := &http.Client{}
 
-	var jsonStrlogin = []byte(`{"email":"wronguser@mailinator.com", "password":"11111"}`)
+	var jsonStrlogin = []byte(`{"Email":"wronguser@mailinator.com", "Password":"11111"}`)
 	reqlogin, err := http.NewRequest("POST", urlLogin, bytes.NewBuffer(jsonStrlogin))
 	reqlogin.Header.Set("X-Custom-Header", "myvalue")
 	reqlogin.Header.Set("Content-Type", "application/json")
@@ -132,7 +132,7 @@ func TestSignupshortpassword(t *testing.T) {
 
 func TestSignupBad(t *testing.T) {
 	t.Log("URL for signup:>", urlSignup)
-	var jsonStrSignup = []byte(`{"email":"testuser2@mailinator.com", "password":"11111"}`)
+	var jsonStrSignup = []byte(`{"Email":"testuser2@mailinator.com", "Password":"11111"}`)
 	reqsignup, err := http.NewRequest("POST", urlSignup, bytes.NewBuffer(jsonStrSignup))
 	reqsignup.Header.Set("X-Custom-Header", "myvalue")
 	reqsignup.Header.Set("Content-Type", "application/json")
