@@ -64,7 +64,7 @@ jobs:
             kops export kubecfg --name ${K8S_CLUSTER}.k8s.ankr.network --state s3://kops.${K8S_CLUSTER}.config
 
             kubectl set image app-dccn-midway=${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/dccn-midway:${BRANCH_NAME}${DATE} \
-            --local -f ./k8s/dccn-midway.yml -o yaml > ./k8s/tmp/dccn-midway-patch.yml
+            --local -f ./k8s/dccn-midway.yml -o yaml > ./k8s/dccn-midway-patch.yml
             kubectl apply -f ./k8s/dccn-midway-patch.yml
             if ! kubectl rollout status deploy/midway --watch=true --timeout=120s; then
               echo "Deploy failed, roll back to previous version"
