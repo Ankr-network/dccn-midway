@@ -22,6 +22,7 @@ func main() {
 	r.HandleFunc("/confirm_password", handlers.ConfirmPassword) // POST
 	r.HandleFunc("/change_password", handlers.ChangePassword) // POST
 	r.HandleFunc("/change_email", handlers.ChangeEmail) // POST
+	r.HandleFunc("/confirmemail", handlers.ConfirmEmail) // POST
 	r.HandleFunc("/update_attribute", handlers.UpdateAttribute) // POST
 	// r.HandleFunc("/welcome", handlers.Welcome)
 	

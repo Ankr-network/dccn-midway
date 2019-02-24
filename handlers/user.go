@@ -13,6 +13,11 @@ import (
 	metadata "google.golang.org/grpc/metadata"
 )
 
+type ConfirmationEmail struct {
+	NewEmail string `json:"NewEmail"`
+	ConfirmationCode string `json:"ConfirmationCode"`
+}
+
 type Confirmation struct {
 	Email string `json:"Email"`
 	ConfirmationCode string `json:"ConfirmationCode"`
@@ -346,4 +351,40 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(jsonrsp)
+}
+
+func ConfirmEmail(w http.ResponseWriter, r *http.Request) {
+	var Creds ConfirmationEmail
+	err := json.NewDecoder(r.Body).Decode(&Creds)
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		return
+	}
+	sessionToken, err:= util.SessionTokenValue(w, r)
+	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
+		log.Info("did not connect: ", err)
+	}
+	defer func(conn *grpc.ClientConn) {
+		if err := conn.Close(); err != nil {
+			http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		}
+	}(conn)
+//	userClient := usermgr.NewUserMgrClient(conn)
+	dc := usermgr.NewUserMgrClient(conn)
+	md := metadata.New(map[string]string{
+		"token": sessionToken,
+	})
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	log.Printf("Email: %s \n", Creds.NewEmail)
+	log.Printf("ConfirmationCode: %s \n", Creds.ConfirmationCode)
+	_, err = dc.ConfirmEmail(ctx, &usermgr.ConfirmEmailRequest{NewEmail: Creds.NewEmail, ConfirmationCode: Creds.ConfirmationCode})
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		log.Printf("Confirm Reqistration Request went wrong! %s\n", err)
+		return
+	}
+	log.Printf("Request Success: %s\n", Creds.NewEmail)
+	w.Write([]byte("Confirm Success!"))
 }
