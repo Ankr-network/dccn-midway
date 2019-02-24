@@ -12,10 +12,10 @@ func SessionTokenValue(w http.ResponseWriter, r *http.Request) (string, error) {
 
 	sessionTokenarray := strings.Split(c, " ")
 	if sessionTokenarray == nil {
-		return "", errors.New("No sessionToken")
+		return "", errors.New("DetailNo sessionToken")
 	}
 	if len(sessionTokenarray) == 1 {
-		return "", errors.New("Invalid sessionToken syntax")
+		return "", errors.New("DetailInvalid sessionToken syntax")
 	}
 
 	sessionToken := sessionTokenarray[1]
