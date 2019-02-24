@@ -33,7 +33,7 @@ func main() {
 	//r.HandleFunc("/taskdetail", handlers.TaskDetail)
 	//http.HandleFunc("/confirmregistration", handlers.confirmRegistration)
 	//http.HandleFunc("/forgotpassword", handlers.forgotPassword)
-	r.HandleFunc("/confirmemail", handlers.confirmEmail)
+	r.HandleFunc("/confirmemail", handlers.ConfirmEmail)
 	// start the server on port 8000
 	http.Handle("/", &MyServer{r})
 	log.Fatal(http.ListenAndServe(":8080", nil))
