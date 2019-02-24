@@ -8,13 +8,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
 func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/login", handlers.Signin)
 	r.HandleFunc("/signup", handlers.Signup)
-//	r.HandleFunc("/welcome", handlers.Welcome)
+	//	r.HandleFunc("/welcome", handlers.Welcome)
 	r.HandleFunc("/refresh", handlers.Refresh)
 	r.HandleFunc("/logout", handlers.Logout)
 	r.HandleFunc("/create", handlers.CreateTask)
@@ -30,11 +29,11 @@ func main() {
 	r.HandleFunc("/changeemail", handlers.ChangeEmail)
 	r.HandleFunc("/refresh", handlers.Refresh)
 	r.HandleFunc("/updateattribute", handlers.UpdateAttribute)
-	
+
 	//r.HandleFunc("/taskdetail", handlers.TaskDetail)
 	//http.HandleFunc("/confirmregistration", handlers.confirmRegistration)
 	//http.HandleFunc("/forgotpassword", handlers.forgotPassword)
-	//http.HandleFunc("/confirmpassword", handlers.confirmPassword)
+	r.HandleFunc("/confirmemail", handlers.confirmEmail)
 	// start the server on port 8000
 	http.Handle("/", &MyServer{r})
 	log.Fatal(http.ListenAndServe(":8080", nil))
