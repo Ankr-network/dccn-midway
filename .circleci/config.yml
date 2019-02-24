@@ -43,15 +43,18 @@ jobs:
             then
               BRANCH_NAME="dev"
               URL_BRANCH="client-stage.dccn.ankr.network:50051"
+              ACM_CERT=$(aws acm list-certificates --region=us-west-1 | jq -r '.CertificateSummaryList[] | select(.DomainName == "midway-stage.ankr.network") | .CertificateArn')
               K8S_CLUSTER="stage.hub"
             elif [[ ($BRANCH_NAME == "master") ]]
             then
               BRANCH_NAME="stage"
               URL_BRANCH="client.dccn.ankr.network:50051"
+              ACM_CERT=$(aws acm list-certificates --region=us-east-1 | jq -r '.CertificateSummaryList[] | select(.DomainName == "midway.ankr.network") | .CertificateArn')
               K8S_CLUSTER="hub"
             else
               BRANCH_NAME="feat"
               URL_BRANCH="client-dev.dccn.ankr.network:50051"
+              ACM_CERT=$(aws acm list-certificates --region=us-west-1 | jq -r '.CertificateSummaryList[] | select(.DomainName == "midway-dev.ankr.network") | .CertificateArn')
               K8S_CLUSTER="dev.hub"
             fi
             DOCKER_NAME="dccn-midway"
@@ -61,6 +64,7 @@ jobs:
               docker push 815280425737.dkr.ecr.us-west-2.amazonaws.com/dccn-midway:$TAG
             done
 
+            kubectl annotate --overwrite service midway service.beta.kubernetes.io/aws-load-balancer-ssl-cert=$ACM_CERT
             kops export kubecfg --name ${K8S_CLUSTER}.k8s.ankr.network --state s3://kops.${K8S_CLUSTER}.config
             mkdir ./k8s/tmp
 
