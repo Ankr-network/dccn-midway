@@ -12,32 +12,33 @@ import (
 func main() {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/login", handlers.Signin)
-	r.HandleFunc("/signup", handlers.Signup)
-//	r.HandleFunc("/welcome", handlers.Welcome)
-	r.HandleFunc("/refresh", handlers.Refresh)
-	r.HandleFunc("/logout", handlers.Logout)
-	r.HandleFunc("/create", handlers.CreateTask)
-	r.HandleFunc("/update", handlers.UpdateTask)
-	r.HandleFunc("/list", handlers.ListTask)
-	r.HandleFunc("/delete", handlers.CancelTask)
-	r.HandleFunc("/purge", handlers.PurgeTask)
-	r.HandleFunc("/dclist", handlers.DataCenterList)
-	r.HandleFunc("/confirmregistration", handlers.ConfirmRegistration)
-	r.HandleFunc("/forgotpassword", handlers.ForgotPassword)
-	r.HandleFunc("/confirmpassword", handlers.ConfirmPassword)
-	r.HandleFunc("/changepassword", handlers.ChangePassword)
-	r.HandleFunc("/changeemail", handlers.ChangeEmail)
-	r.HandleFunc("/refresh", handlers.Refresh)
-	r.HandleFunc("/updateattribute", handlers.UpdateAttribute)
-	r.HandleFunc("/taskoverview", handlers.TaskOverview)
-	r.HandleFunc("/taskleaderboard", handlers.TaskLeaderBoard)
-	r.HandleFunc("/networkinfo", handlers.NetworkInfo)
-	r.HandleFunc("/dcleaderboard", handlers.DCLeaderBoard)
-	//r.HandleFunc("/taskdetail", handlers.TaskDetail)
-	//http.HandleFunc("/confirmregistration", handlers.confirmRegistration)
-	//http.HandleFunc("/forgotpassword", handlers.forgotPassword)
-	//http.HandleFunc("/confirmpassword", handlers.confirmPassword)
+	// user management
+	r.HandleFunc("/signup", handlers.Signup) // POST
+	r.HandleFunc("/confirm_registration", handlers.ConfirmRegistration) // POST
+	r.HandleFunc("/login", handlers.Signin) // POST
+	r.HandleFunc("/logout", handlers.Logout) // POST
+	r.HandleFunc("/refresh", handlers.Refresh) // POST
+	r.HandleFunc("/forgot_password", handlers.ForgotPassword) // POST
+	r.HandleFunc("/confirm_password", handlers.ConfirmPassword) // POST
+	r.HandleFunc("/change_password", handlers.ChangePassword) // POST
+	r.HandleFunc("/change_email", handlers.ChangeEmail) // POST
+	r.HandleFunc("/update_attribute", handlers.UpdateAttribute) // POST
+	// r.HandleFunc("/welcome", handlers.Welcome)
+	
+	// task management
+	r.HandleFunc("/task/create", handlers.CreateTask) // POST
+	r.HandleFunc("/task/update", handlers.UpdateTask) // POST
+	r.HandleFunc("/task/list", handlers.ListTask) // GET
+	r.HandleFunc("/task/delete", handlers.CancelTask) // POST
+	r.HandleFunc("/task/purge", handlers.PurgeTask) // POST
+
+	// data center management
+	r.HandleFunc("/dc/list", handlers.DataCenterList) // GET
+	r.HandleFunc("/dc/task_overview", handlers.TaskOverview) // GET
+	r.HandleFunc("/dc/task_leaderboard", handlers.TaskLeaderBoard) // GET
+	r.HandleFunc("/dc/network_info", handlers.NetworkInfo) // GET
+	r.HandleFunc("/dc/leaderboard", handlers.DCLeaderBoard) // GET
+
 	// start the server on port 8000
 	http.Handle("/", &MyServer{r})
 	log.Fatal(http.ListenAndServe(":8080", nil))
