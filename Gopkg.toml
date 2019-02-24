@@ -26,7 +26,7 @@
 
 
 [[constraint]]
-  branch = "feature/SWDEV-161-fix-all-bugs"
+  branch = "develop"
   name = "github.com/Ankr-network/dccn-common"
 
 [[constraint]]
