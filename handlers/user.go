@@ -46,7 +46,7 @@ type UpdateAttributesRequest struct {
     update_attributes_code string `json:"UpdateAttributeCode"`;
 	name string `json:"Name"`;
     hash_password string `json:"HashPassword"`;
-    tokens string `json:"Tokends"`;
+    tokens string `json:"Tokens"`;
     pub_key string `json:"PubKey"`;
     creation_date uint64 `json:"CreationDate"`; //task creation date
     last_modified_date uint64 `json:"LastModifiedDate"`; //task creation date
