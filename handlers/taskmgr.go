@@ -223,15 +223,20 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Info(sessionToken)
 	var NewRequest Request
+	//if r.Body == {} {
+	//	NewRequest = Request{}
+	//} else {
 	// Get the JSON body and decode into credentials
 	err = json.NewDecoder(r.Body).Decode(&NewRequest)
+	//}
+	log.Info("xiaouw")
 	if err != nil {
 		// If the structure of the body is wrong, return an HTTP error
-		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		http.Error(w, "The body is empty! Please request with a vaild object", http.StatusBadRequest)
 		log.Printf("Something went wrong! %s\n", err)
 		return
+		//NewRequest = Request{}
 	}
-
 
 	conn, err := grpc.Dial(ENDPOINT, grpc.WithInsecure())
 	if err != nil {
@@ -249,7 +254,6 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 	tokenContext, cancel := context.WithTimeout(ctx, 180*time.Second)
 	defer cancel()
-
 	userTasks := make([]*common_proto.Task, 0)
 	rsp, err := dc.TaskList(tokenContext, &taskmgr.TaskListRequest{TaskFilter: &taskmgr.TaskFilter{TaskId: NewRequest.TaskID}})
 	if err != nil {
@@ -260,7 +264,7 @@ func ListTask(w http.ResponseWriter, r *http.Request) {
 	userTasks = append(userTasks, rsp.Tasks...)
 	if len(userTasks) == 0 {
 		log.Printf("no tasks belongs to You!")
-		return
+	//	return
 	}
 	log.Println(len(userTasks), "tasks belongs to You!")
 	jsonTaskList, _ := json.Marshal(userTasks)
