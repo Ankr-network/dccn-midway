@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "develop"
-  digest = "1:cb3c63453b2324cfa8013c8187b42313501cb0be780a38b270fc55063c29a617"
+  digest = "1:61ba308bacf9e0664e64366ea3e39c9c94e644d96249ac686e998f867ad97f62"
   name = "github.com/Ankr-network/dccn-common"
   packages = [
     "protos/common",
@@ -12,7 +12,7 @@
     "protos/usermgr/v1/grpc",
   ]
   pruneopts = "UT"
-  revision = "2700b4abadecec32f860b8150d2dac08c655b825"
+  revision = "5a92e1569791b1ef19bbea75749adad04cdaea35"
 
 [[projects]]
   digest = "1:a54465f90211f1c17ae03483b275175f6b69cd2303d7f179f651e8c05f86802e"
@@ -48,6 +48,14 @@
   version = "v2.0.0"
 
 [[projects]]
+  digest = "1:ca59b1175189b3f0e9f1793d2c350114be36eaabbe5b9f554b35edee1de50aea"
+  name = "github.com/gorilla/mux"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+  version = "v1.7.0"
+
+[[projects]]
   digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
@@ -69,7 +77,7 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "74369b46fc6756741c016591724fd1cb8e26845f"
+  revision = "ffb98f73852f696ea2bb21a617a5c4b3e067a439"
 
 [[projects]]
   branch = "master"
@@ -89,14 +97,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0d703f14f9bbbe1070ff0ce86d749dcbc9d68fb0ae554252c09bd4bb37a072e7"
+  digest = "1:80200f57d482f61334a482a046ddedbad77c04dbec6ab81a4e1b3c6adbdfadef"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "983097b1a8a340cd1cc7df17d735154d89e10b1a"
+  revision = "cd391775e71e684db52b63df9affd58269495083"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -127,7 +135,7 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "4b09977fb92221987e99d190c8f88f2c92727a29"
+  revision = "082222b4a5c572e33e82ee9162d1352c7cf38682"
 
 [[projects]]
   digest = "1:9ab5a33d8cb5c120602a34d2e985ce17956a4e8c2edce7e6961568f95e40c09a"
@@ -179,6 +187,7 @@
     "github.com/Ankr-network/dccn-common/protos/usermgr/v1/grpc",
     "github.com/astaxie/beego/logs",
     "github.com/gomodule/redigo/redis",
+    "github.com/gorilla/mux",
     "github.com/sirupsen/logrus",
     "google.golang.org/grpc",
     "google.golang.org/grpc/metadata",

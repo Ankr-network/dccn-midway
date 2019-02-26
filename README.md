@@ -23,7 +23,6 @@ POST http://localhost:8000/signup
 {"username":"user","password":"password", "name": "AnkrNetwork", "nickname": "Ankr""}
 ```
 
-
 make a sign-in request with the appropriate credentials:
 
 ```
@@ -40,7 +39,7 @@ GET http://localhost:8000/welcome
 
 You can now try hitting the create route from the same client to add tasks:
 
-```
+```sh
 GET http://localhost:8000/create
 
 {
@@ -56,35 +55,39 @@ GET http://localhost:8000/create
 
 You can now try hitting the list route from the same client to get the tasklist:
 
-```
+```sh
 GET http://localhost:8000/list
 ```
 
 Hit the refresh route,`session_token`'s length will be extended by 120s:
 
-```
+```sh
 POST http://localhost:8000/refresh
 ```
 
-## How to build it in k8s:
+## How to build it in k8s
 
 First, one need to deploy a redis-master service:
 
-```
+```sh
 kubectl create -f https://k8s.io/examples/application/guestbook/redis-master-deployment.yaml
 ```
 
 Then create a Redis service:
-```
+
+```sh
 kubectl create -f https://k8s.io/examples/application/guestbook/redis-master-service.yaml
 ```
+
 Finally, create the dccn-midway service:
-```
+
+```sh
 cd dccn-midway/k8s
 kubectl create -f dccn-midway.yaml
 ```
 
 ## How to test it in local:
+
 To run the test, one must start a [redis server] on his/her local machine before the test:
 
 ```sh
@@ -97,6 +100,7 @@ Next, start the Go application:
 go build
 ./dccn-midway
 ```
+
 Then, open a new terminal
 go test -v
 it will start to do the test.
