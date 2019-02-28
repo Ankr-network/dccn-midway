@@ -90,14 +90,10 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	case "0":
 		task.Type = common_proto.TaskType_DEPLOYMENT
 		task.TypeData = &common_proto.Task_TypeDeployment{TypeDeployment: &common_proto.TaskTypeDeployment{Image: Heretask.Image}}
-		
 	case "1":
-		task.Type = common_proto.TaskType_DEPLOYMENT
-		task.TypeData = &common_proto.Task_TypeDeployment{TypeDeployment: &common_proto.TaskTypeDeployment{Image: Heretask.Image}}
-	case "2":
 		task.Type = common_proto.TaskType_JOB
 		task.TypeData = &common_proto.Task_TypeJob{TypeJob: &common_proto.TaskTypeJob{Image: Heretask.Image}}
-	case "3":
+	case "2":
 		task.Type = common_proto.TaskType_CRONJOB
 		task.TypeData = &common_proto.Task_TypeCronJob{TypeCronJob: &common_proto.TaskTypeCronJob{Image: Heretask.Image, Schedule: Heretask.Schedule}}
 	default:
@@ -187,18 +183,14 @@ func UpdateTask(w http.ResponseWriter, r *http.Request) {
 		task.Type = common_proto.TaskType_DEPLOYMENT
 		task.TypeData = &common_proto.Task_TypeDeployment{TypeDeployment: &common_proto.TaskTypeDeployment{Image: Heretask.Image}}
 	case "1":
-		task.Type = common_proto.TaskType_DEPLOYMENT
-		task.TypeData = &common_proto.Task_TypeDeployment{TypeDeployment: &common_proto.TaskTypeDeployment{Image: Heretask.Image}}
-	case "2":
 		task.Type = common_proto.TaskType_JOB
 		task.TypeData = &common_proto.Task_TypeJob{TypeJob: &common_proto.TaskTypeJob{Image: Heretask.Image}}
-	case "3":
+	case "2":
 		task.Type = common_proto.TaskType_CRONJOB
 		task.TypeData = &common_proto.Task_TypeCronJob{TypeCronJob: &common_proto.TaskTypeCronJob{Image: Heretask.Image, Schedule: Heretask.Schedule}}
 	default:
 		task.Type = common_proto.TaskType_DEPLOYMENT
 		task.TypeData = &common_proto.Task_TypeDeployment{TypeDeployment: &common_proto.TaskTypeDeployment{Image: Heretask.Image}}
-		
 	}
 	tcrq := taskmgr.UpdateTaskRequest{
 		Task:   &task,
