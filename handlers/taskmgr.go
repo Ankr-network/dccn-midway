@@ -34,6 +34,23 @@ type Request struct {
 	TaskID string `json:"TaskID"`
 }
 
+type TaskOverviewSendback struct {
+	ClusterCount int32 `json:"ClusterCount"`
+	EnvironmentCount int32 `json:"EnvironmentCount"`
+	RegionCount int32 `json:"RegionCount"`
+	TotalTaskCount int32 `json:"TotalTaskCount"`
+	HealthTaskCount int32 `json:"HealthTaskCount"`
+}
+
+type NetworkInfoSendback struct {
+	UserCount int32 `json:"UserCount"`
+	HostCount int32 `json:"HostCount"`
+	EnvironmentCount int32 `json:"EnvironmentCount"`
+	ContainerCount int32 `json:"ContainerCount"`
+	Traffic int32 `json:"Traffic"`
+}
+
+
 func CreateTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("Create Tasks")
@@ -505,7 +522,18 @@ func TaskOverview(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
 		return
 	}
-	jsonDcList, err := json.Marshal(rsp)
+	Sendback := TaskOverviewSendback{
+		ClusterCount:	rsp.ClusterCount,
+		EnvironmentCount: rsp.EnvironmentCount,
+		RegionCount:	rsp.RegionCount,
+		TotalTaskCount: rsp.TotalTaskCount,
+		HealthTaskCount: rsp.HealthTaskCount,
+	}
+	//int32 environment_count = 2;
+	//int32 region_count = 3;
+	//int32 total_task_count = 4;
+	//int32 health_task_count = 5;
+	jsonDcList, err := json.Marshal(Sendback)
 	if err != nil {
 		log.Info("Marshal Error", err)
 		http.Error(w, util.ParseError(err), http.StatusNotFound)
@@ -548,7 +576,14 @@ func NetworkInfo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, util.ParseError(err), http.StatusUnauthorized)
 		return
 	}
-	jsonDcList, err := json.Marshal(rsp)
+	Sendback := NetworkInfoSendback{
+		UserCount:	rsp.UserCount,
+		HostCount:	rsp.HostCount,
+		EnvironmentCount: rsp.EnvironmentCount,
+		ContainerCount: rsp.ContainerCount,
+		Traffic: rsp.Traffic,
+	}
+	jsonDcList, err := json.Marshal(Sendback)
 	if err != nil {
 		log.Info("Marshal Error", err)
 		http.Error(w, util.ParseError(err), http.StatusNotFound)
