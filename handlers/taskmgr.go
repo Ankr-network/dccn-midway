@@ -35,19 +35,19 @@ type Request struct {
 }
 
 type TaskOverviewSendback struct {
-	ClusterCount int32 `json:"ClusterCount"`
-	EnvironmentCount int32 `json:"EnvironmentCount"`
-	RegionCount int32 `json:"RegionCount"`
-	TotalTaskCount int32 `json:"TotalTaskCount"`
-	HealthTaskCount int32 `json:"HealthTaskCount"`
+	ClusterCount int32 `json:"cluster_count"`
+	EnvironmentCount int32 `json:"environment_count"`
+	RegionCount int32 `json:"region_count"`
+	TotalTaskCount int32 `json:"total_task_count"`
+	HealthTaskCount int32 `json:"health_task_count"`
 }
 
 type NetworkInfoSendback struct {
-	UserCount int32 `json:"UserCount"`
-	HostCount int32 `json:"HostCount"`
-	EnvironmentCount int32 `json:"EnvironmentCount"`
-	ContainerCount int32 `json:"ContainerCount"`
-	Traffic int32 `json:"Traffic"`
+	UserCount int32 `json:"user_count"`
+	HostCount int32 `json:"host_count"`
+	EnvironmentCount int32 `json:"environment_count"`
+	ContainerCount int32 `json:"container_count"`
+	Traffic string`json:"Traffic"`
 }
 
 
@@ -581,7 +581,19 @@ func NetworkInfo(w http.ResponseWriter, r *http.Request) {
 		HostCount:	rsp.HostCount,
 		EnvironmentCount: rsp.EnvironmentCount,
 		ContainerCount: rsp.ContainerCount,
-		Traffic: rsp.Traffic,
+		
+	}
+	switch rsp.Traffic {
+	case 0:
+		Sendback.Traffic = "N/A"
+	case 1:
+		Sendback.Traffic = "LIGHT"
+	case 2:
+		Sendback.Traffic = "MEDIUM"
+	case 3:
+		Sendback.Traffic = "HEAVY"
+	default:
+		Sendback.Traffic = "N/A"
 	}
 	jsonDcList, err := json.Marshal(Sendback)
 	if err != nil {
