@@ -47,7 +47,7 @@ type NetworkInfoSendback struct {
 	HostCount int32 `json:"host_count"`
 	EnvironmentCount int32 `json:"environment_count"`
 	ContainerCount int32 `json:"container_count"`
-	Traffic string`json:"Traffic"`
+	Traffic string`json:"traffic"`
 }
 
 
