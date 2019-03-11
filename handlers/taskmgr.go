@@ -743,6 +743,10 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	num := 0
 	client := &http.Client{}
 	respUSDT, err := client.Do(reqUSDT)
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+	}
+	defer respUSDT.Body.Close()
 	btcusdt, _ := ioutil.ReadAll(respUSDT.Body)
 	
 	var usdtbody Bitraxbody
@@ -766,6 +770,10 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 		}	
 	}
 	respBTC, err := client.Do(reqBTC)
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+	}
+	defer respBTC.Body.Close()
 	btcankr, _ := ioutil.ReadAll(respBTC.Body)
 	var btcbody Bitraxbody
 	_ = json.Unmarshal(btcankr, &btcbody)
