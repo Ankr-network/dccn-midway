@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"bytes"
+	//"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -730,19 +730,19 @@ func DCLeaderBoard(w http.ResponseWriter, r *http.Request) {
 func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("AnkrPrice")
-	var jsonStrList = []byte(`{}`)
-	reqUSDT, err := http.NewRequest("GET", urlUSDT, bytes.NewBuffer(jsonStrList))
+	//var jsonStrList = []byte(`{}`)
+	reqUSDT, err := http.NewRequest("GET", urlUSDT, nil)
 	log.Info(reqUSDT)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
-	reqBTC, err := http.NewRequest("GET", urlBTC, bytes.NewBuffer(jsonStrList))
+	reqBTC, err := http.NewRequest("GET", urlBTC, nil)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
 	num := 0
-	client := &http.Client{}
-	respUSDT, err := client.Do(reqUSDT)
+	//client := &http.Client{}
+	respUSDT, err := http.DefaultClient.Do(reqUSDT)
 	if respUSDT == nil {
 		log.Info("haloha")
 		return
@@ -764,7 +764,7 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 		num = 0
 		for usdtbody.Success == false {
 			log.Info("xiaowag")
-			respUSDT, err = client.Do(reqUSDT)
+			respUSDT, err = http.DefaultClient.Do(reqUSDT)
 			btcusdt, _ = ioutil.ReadAll(respUSDT.Body)
 			err = json.Unmarshal(btcusdt, &usdtbody)
 			num = num + 1
@@ -774,7 +774,7 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 			}
 		}	
 	}
-	respBTC, err := client.Do(reqBTC)
+	respBTC, err := http.DefaultClient.Do(reqBTC)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
@@ -788,7 +788,7 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 		num = 0
 		for btcbody.Success == false {
 			log.Info("xiaowu")
-			respBTC, err = client.Do(reqBTC)
+			respBTC, err = http.DefaultClient.Do(reqBTC)
 			btcankr, _ = ioutil.ReadAll(respBTC.Body)
 			err = json.Unmarshal(btcankr, &btcbody)
 			num = num + 1
