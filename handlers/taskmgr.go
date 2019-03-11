@@ -746,7 +746,7 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
-	defer respUSDT.Body.Close()
+	//defer respUSDT.Body.Close()
 	btcusdt, _ := ioutil.ReadAll(respUSDT.Body)
 	
 	var usdtbody Bitraxbody
