@@ -732,29 +732,61 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	log.Printf("AnkrPrice")
 	var jsonStrList = []byte(`{}`)
 	reqUSDT, err := http.NewRequest("GET", urlUSDT, bytes.NewBuffer(jsonStrList))
+	log.Info(reqUSDT)
 	if err != nil {
-		http.Error(w, util.ParseError(err), http.StatusBadRequest, )
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
 	reqBTC, err := http.NewRequest("GET", urlBTC, bytes.NewBuffer(jsonStrList))
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
+	num := 0
 	client := &http.Client{}
 	respUSDT, err := client.Do(reqUSDT)
 	btcusdt, _ := ioutil.ReadAll(respUSDT.Body)
-	log.Info(string(btcusdt))
+	
 	var usdtbody Bitraxbody
 	err = json.Unmarshal(btcusdt, &usdtbody)
 	usdt := usdtbody.Result.Last
-
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+	}
+	if usdtbody.Success == false {
+		num = 0
+		for usdtbody.Success == false {
+			log.Info("xiaowag")
+			respUSDT, err = client.Do(reqUSDT)
+			btcusdt, _ = ioutil.ReadAll(respUSDT.Body)
+			err = json.Unmarshal(btcusdt, &usdtbody)
+			num = num + 1
+			if num > 30 {
+				http.Error(w, "There is something wrong with the Bitrex API, please try again", http.StatusBadRequest)
+				return
+			}
+		}	
 	}
 	respBTC, err := client.Do(reqBTC)
 	btcankr, _ := ioutil.ReadAll(respBTC.Body)
 	var btcbody Bitraxbody
 	_ = json.Unmarshal(btcankr, &btcbody)
 	btc := btcbody.Result.Last
+
+	if btcbody.Success == false {
+		num = 0
+		for btcbody.Success == false {
+			log.Info("xiaowu")
+			respBTC, err = client.Do(reqBTC)
+			btcankr, _ = ioutil.ReadAll(respBTC.Body)
+			err = json.Unmarshal(btcankr, &btcbody)
+			num = num + 1
+			if num > 30 {
+				http.Error(w, "There is something wrong with the Bitrex API, please try again", http.StatusBadRequest)
+				return
+			}
+		}
+		
+	}
+	log.Info(btc)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
