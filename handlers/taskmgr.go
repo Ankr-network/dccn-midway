@@ -1,13 +1,16 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
-	//"fmt"
+	"fmt"
 	"net/http"
 	"time"
+	"io/ioutil"
 
+	"github.com/shopspring/decimal"
 	common_proto "github.com/Ankr-network/dccn-common/protos/common"
 	dcmgr "github.com/Ankr-network/dccn-common/protos/dcmgr/v1/grpc"
 	taskmgr "github.com/Ankr-network/dccn-common/protos/taskmgr/v1/grpc"
@@ -16,6 +19,27 @@ import (
 	"google.golang.org/grpc"
 	metadata "google.golang.org/grpc/metadata"
 )
+
+const (
+	BittrexADDRESS = "https://api.bittrex.com"
+)
+var (
+	urlUSDT  = fmt.Sprintf("%s/api/v1.1/public/getticker?market=USDT-BTC", BittrexADDRESS)
+	urlBTC = fmt.Sprintf("%s/api/v1.1/public/getticker?market=BTC-ANKR", BittrexADDRESS)
+)
+
+type Ticker struct {
+	Bid  decimal.Decimal `json:"Bid"`
+	Ask  decimal.Decimal `json:"Ask"`
+	Last decimal.Decimal `json:"Last"`
+}
+
+type Bitraxbody struct {
+	Success bool `json:"success"`
+	Message string `json:"message"`
+	Result Ticker `json:"result"`
+}
+
 
 type Task struct {
 	Name         string `json:"Name"`
@@ -50,6 +74,9 @@ type NetworkInfoSendback struct {
 	Traffic string`json:"traffic"`
 }
 
+type USDTANKR struct {
+	Price decimal.Decimal `json:"price"`
+}
 
 func CreateTask(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
@@ -698,4 +725,47 @@ func DCLeaderBoard(w http.ResponseWriter, r *http.Request) {
 	for i := range LeaderBoard {
 		log.Println(LeaderBoard[i])
 	}
+}
+
+func AnkrPrice(w http.ResponseWriter, r *http.Request) {
+	// We can obtain the session token from the requests cookies, which come with every request
+	log.Printf("AnkrPrice")
+	var jsonStrList = []byte(`{}`)
+	reqUSDT, err := http.NewRequest("GET", urlUSDT, bytes.NewBuffer(jsonStrList))
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest, )
+	}
+	reqBTC, err := http.NewRequest("GET", urlBTC, bytes.NewBuffer(jsonStrList))
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+	}
+	client := &http.Client{}
+	respUSDT, err := client.Do(reqUSDT)
+	btcusdt, _ := ioutil.ReadAll(respUSDT.Body)
+	log.Info(string(btcusdt))
+	var usdtbody Bitraxbody
+	err = json.Unmarshal(btcusdt, &usdtbody)
+	usdt := usdtbody.Result.Last
+
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+	}
+	respBTC, err := client.Do(reqBTC)
+	btcankr, _ := ioutil.ReadAll(respBTC.Body)
+	var btcbody Bitraxbody
+	_ = json.Unmarshal(btcankr, &btcbody)
+	btc := btcbody.Result.Last
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+	}
+	jsonPrice := USDTANKR{
+		Price: btc.Mul(usdt),
+	}
+	OutputPrice, err := json.Marshal(jsonPrice)
+	if err != nil {
+		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		log.Printf("Something went wrong in Marshall Request! %s\n", err)
+		return
+	}
+	w.Write(OutputPrice)
 }
