@@ -744,6 +744,7 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	num := 0
 	//client := &http.Client{}
 	respUSDT, err := http.DefaultClient.Do(reqUSDT)
+	log.Info(err)
 	if respUSDT == nil {
 		for respUSDT == nil {
 			respUSDT, err = http.DefaultClient.Do(reqUSDT)
