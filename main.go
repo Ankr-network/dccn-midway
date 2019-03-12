@@ -41,7 +41,7 @@ func main() {
 	r.HandleFunc("/dc/leaderboard", handlers.DCLeaderBoard) // GET
 
 	// Bitrex realated
-	r.HandleFunc("/bitrex/price", handlers.AnkrPrice) 
+	r.HandleFunc("/price/bitrex", handlers.AnkrPrice) 
 	// start the server on port 8000
 	http.Handle("/", &MyServer{r})
 	log.Fatal(http.ListenAndServe(":8080", nil))

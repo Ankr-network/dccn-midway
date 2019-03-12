@@ -75,7 +75,7 @@ type NetworkInfoSendback struct {
 }
 
 type USDTANKR struct {
-	Price decimal.Decimal `json:"price"`
+	Price float64 `json:"price"`
 }
 
 func CreateTask(w http.ResponseWriter, r *http.Request) {
@@ -732,8 +732,7 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	log.Printf("AnkrPrice")
 	//var jsonStrList = []byte(`{}`)
 	reqUSDT, err := http.NewRequest("GET", urlUSDT, nil)
-	log.Info(err)
-	log.Info(reqUSDT)
+	
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
@@ -806,8 +805,9 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
+	pricefloat, _ :=btc.Mul(usdt).Float64()
 	jsonPrice := USDTANKR{
-		Price: btc.Mul(usdt),
+		Price: pricefloat,
 	}
 	OutputPrice, err := json.Marshal(jsonPrice)
 	if err != nil {
