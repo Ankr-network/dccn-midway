@@ -732,6 +732,7 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	log.Printf("AnkrPrice")
 	//var jsonStrList = []byte(`{}`)
 	reqUSDT, err := http.NewRequest("GET", urlUSDT, nil)
+	log.Info(err)
 	log.Info(reqUSDT)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
