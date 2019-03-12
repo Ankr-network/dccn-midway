@@ -2,6 +2,7 @@
 FROM golang:1.11-alpine AS compiler
 ARG URL_BRANCH
 RUN apk add --no-cache git dep openssh-client
+RUN apk add -U --no-cache ca-certificates
 
 WORKDIR /go/src/github.com/Ankr-network/dccn-midway
 COPY . .
