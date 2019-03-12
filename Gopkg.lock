@@ -12,7 +12,7 @@
     "protos/usermgr/v1/grpc",
   ]
   pruneopts = "UT"
-  revision = "c7555de4a42c4b444a8006211b872b99439441f5"
+  revision = "b3c5f63affd05ac71951ab837bc53ffec04ce539"
 
 [[projects]]
   digest = "1:a54465f90211f1c17ae03483b275175f6b69cd2303d7f179f651e8c05f86802e"
