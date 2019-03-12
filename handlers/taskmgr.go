@@ -19,7 +19,8 @@ import (
 	"google.golang.org/grpc"
 	metadata "google.golang.org/grpc/metadata"
 )
-
+var Ttime time.Time
+var Globalprice []byte
 const (
 	BittrexADDRESS = "https://api.bittrex.com"
 )
@@ -730,7 +731,13 @@ func DCLeaderBoard(w http.ResponseWriter, r *http.Request) {
 func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	// We can obtain the session token from the requests cookies, which come with every request
 	log.Printf("AnkrPrice")
-	//var jsonStrList = []byte(`{}`)
+	log.Info(time.Since(Ttime))
+	if time.Since(Ttime).Minutes() < 1 {
+	//	log.Info(time.Since(Ttime))
+		w.Write(Globalprice)
+		return
+	}
+
 	reqUSDT, err := http.NewRequest("GET", urlUSDT, nil)
 	
 	if err != nil {
@@ -816,4 +823,6 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(OutputPrice)
+	Ttime = time.Now()
+	Globalprice = OutputPrice
 }
