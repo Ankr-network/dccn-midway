@@ -10,6 +10,7 @@ import (
 	"time"
 	"io/ioutil"
 
+
 	"github.com/shopspring/decimal"
 	common_proto "github.com/Ankr-network/dccn-common/protos/common"
 	dcmgr "github.com/Ankr-network/dccn-common/protos/dcmgr/v1/grpc"
@@ -24,21 +25,33 @@ var Globalprice []byte
 const (
 	BittrexADDRESS = "https://api.bittrex.com"
 )
+
 var (
-	urlUSDT  = fmt.Sprintf("%s/api/v1.1/public/getticker?market=USDT-BTC", BittrexADDRESS)
-	urlBTC = fmt.Sprintf("%s/api/v1.1/public/getticker?market=BTC-ANKR", BittrexADDRESS)
+	urlUSDT  = fmt.Sprintf("%s/api/v1.1/public/getmarketsummary?market=USDT-BTC", BittrexADDRESS)
+	urlBTC = fmt.Sprintf("%s/api/v1.1/public/getmarketsummary?market=BTC-ANKR", BittrexADDRESS)
 )
 
 type Ticker struct {
 	Bid  decimal.Decimal `json:"Bid"`
 	Ask  decimal.Decimal `json:"Ask"`
 	Last decimal.Decimal `json:"Last"`
+	PrevDay decimal.Decimal `json:"PrevDay"`
+	MarketName interface{}
+	High interface{}
+	Low interface{}
+	Volume interface{}
+	BaseVolume interface{}
+	TimeStamp interface{}
+	OpenBuyOrders interface{}
+	OpenSellOrders interface{}
+	Created interface{}
+	DisplayMarketName interface{}
 }
 
 type Bitraxbody struct {
 	Success bool `json:"success"`
 	Message string `json:"message"`
-	Result Ticker `json:"result"`
+	Result []Ticker `json:"result"`
 }
 
 
@@ -76,7 +89,9 @@ type NetworkInfoSendback struct {
 }
 
 type USDTANKR struct {
-	Price float64 `json:"price"`
+	Price decimal.Decimal `json:"price"`
+	PricePrevday decimal.Decimal `json:"priceprevday"`
+	PredayChangeValue decimal.Decimal `json:"prevdaychangeValue"`
 }
 
 func CreateTask(w http.ResponseWriter, r *http.Request) {
@@ -747,7 +762,7 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
-	num := 0
+	//num := 0
 	//client := &http.Client{}
 	respUSDT, err := http.DefaultClient.Do(reqUSDT)
 	log.Info(err)
@@ -765,24 +780,30 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	
 	var usdtbody Bitraxbody
 	err = json.Unmarshal(btcusdt, &usdtbody)
-	usdt := usdtbody.Result.Last
+	
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
+		return
 	}
 	if usdtbody.Success == false {
-		num = 0
+		/*num = 0
 		for usdtbody.Success == false {
 			log.Info("xiaowag")
 			respUSDT, err = http.DefaultClient.Do(reqUSDT)
 			btcusdt, _ = ioutil.ReadAll(respUSDT.Body)
+			
 			err = json.Unmarshal(btcusdt, &usdtbody)
 			num = num + 1
 			if num > 30 {
 				http.Error(w, "There is something wrong with the Bitrex API, please try again", http.StatusBadRequest)
 				return
 			}
-		}	
+		}*/
+		http.Error(w, "There is something wrong with the Bitrex API, please try again", http.StatusBadRequest)
+		return	
 	}
+	usdt := usdtbody.Result[0].Last
+	usdtprevday := usdtbody.Result[0].PrevDay
 	respBTC, err := http.DefaultClient.Do(reqBTC)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
@@ -790,11 +811,10 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	defer respBTC.Body.Close()
 	btcankr, _ := ioutil.ReadAll(respBTC.Body)
 	var btcbody Bitraxbody
-	_ = json.Unmarshal(btcankr, &btcbody)
-	btc := btcbody.Result.Last
+	err = json.Unmarshal(btcankr, &btcbody)
 
 	if btcbody.Success == false {
-		num = 0
+		/*num = 0
 		for btcbody.Success == false {
 			log.Info("xiaowu")
 			respBTC, err = http.DefaultClient.Do(reqBTC)
@@ -805,16 +825,20 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "There is something wrong with the Bitrex API, please try again", http.StatusBadRequest)
 				return
 			}
-		}
-		
+		}*/
+		http.Error(w, "There is something wrong with the Bitrex API, please try again", http.StatusBadRequest)
+		return
 	}
-	log.Info(btc)
+	//log.Info(btc)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
 	}
-	pricefloat, _ :=btc.Mul(usdt).Float64()
+	btc := btcbody.Result[0].Last
+	btcprevday := btcbody.Result[0].PrevDay
 	jsonPrice := USDTANKR{
-		Price: pricefloat,
+		Price: btc.Mul(usdt),
+		PricePrevday: btcprevday.Mul(usdtprevday),
+		PredayChangeValue: btc.Mul(usdt).Sub(btcprevday.Mul(usdtprevday)),
 	}
 	OutputPrice, err := json.Marshal(jsonPrice)
 	if err != nil {
