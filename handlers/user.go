@@ -287,6 +287,8 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 	var temp map[string]interface{}
 	for i := range Heretask {
 		temp = Heretask[i].(map[string]interface{})
+		log.Info(temp["Value"])
+		log.Info(temp["Value"].(type))
 		switch temp["Value"].(type){
 		case string:
 			log.Info("string")
