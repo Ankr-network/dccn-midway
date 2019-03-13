@@ -93,7 +93,7 @@ type USDTANKR struct {
 }
 type Price struct {
 	Now decimal.Decimal `json:"Now"`
-	P24h decimal.Decimal `json:"P24d"`
+	P24h decimal.Decimal `json:"P24h"`
 }
 
 func CreateTask(w http.ResponseWriter, r *http.Request) {
