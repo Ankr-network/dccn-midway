@@ -89,9 +89,11 @@ type NetworkInfoSendback struct {
 }
 
 type USDTANKR struct {
-	Price decimal.Decimal `json:"price"`
-	PricePrevday decimal.Decimal `json:"priceprevday"`
-	PredayChangeValue decimal.Decimal `json:"prevdaychangeValue"`
+	Price Price `json:"Price"`
+}
+type Price struct {
+	Now decimal.Decimal `json:"Now"`
+	P24h decimal.Decimal `json:"P24d"`
 }
 
 func CreateTask(w http.ResponseWriter, r *http.Request) {
@@ -835,10 +837,12 @@ func AnkrPrice(w http.ResponseWriter, r *http.Request) {
 	}
 	btc := btcbody.Result[0].Last
 	btcprevday := btcbody.Result[0].PrevDay
+	pricenow := Price{
+		Now: btc.Mul(usdt),
+		P24h: btcprevday.Mul(usdtprevday),
+	}
 	jsonPrice := USDTANKR{
-		Price: btc.Mul(usdt),
-		PricePrevday: btcprevday.Mul(usdtprevday),
-		PredayChangeValue: btc.Mul(usdt).Sub(btcprevday.Mul(usdtprevday)),
+		Price: pricenow,
 	}
 	OutputPrice, err := json.Marshal(jsonPrice)
 	if err != nil {
