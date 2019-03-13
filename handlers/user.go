@@ -45,7 +45,8 @@ type UpdateAttributesRequest struct {
     user_id string `json:"UserId"`
     update_attributes_code string `json:"UpdateAttributeCode"`;
 	name string `json:"Name"`;
-    hash_password string `json:"HashPassword"`;
+	hash_password string `json:"HashPassword"`;
+	AvatarBackgroundColor int64 `json:"AvatarBackgroundColor"`
     tokens string `json:"Tokens"`;
     pub_key string `json:"PubKey"`;
     creation_date uint64 `json:"CreationDate"`; //task creation date
@@ -297,7 +298,7 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 			} else {
 				return
 			}
-		case int:
+		case int64:
 			log.Info("Int")
 			data := temp["Value"]
 			if str, ok := data.(int64); ok {
