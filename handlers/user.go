@@ -308,6 +308,7 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 				task.Key = temp["Key"].(string)
 				task.Value = &usermgr.UserAttribute_IntValue{IntValue: str}
 			} else {
+				log.Info(ok)
 				return
 			}
 		case int64:
