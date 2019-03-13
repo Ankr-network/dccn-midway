@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "develop"
-  digest = "1:b11c10e020372ede4171f89c1e5a95a9127f062549dc0a90ab96af715b97db24"
+  digest = "1:6681bcceecac08af8a91bf30efaad49fee8e83208e227218377490e8b9e8e48c"
   name = "github.com/Ankr-network/dccn-common"
   packages = [
     "protos/common",
@@ -12,7 +12,7 @@
     "protos/usermgr/v1/grpc",
   ]
   pruneopts = "UT"
-  revision = "b3c5f63affd05ac71951ab837bc53ffec04ce539"
+  revision = "fa1af683f38453833591c1360eee45210b3d031d"
 
 [[projects]]
   digest = "1:a54465f90211f1c17ae03483b275175f6b69cd2303d7f179f651e8c05f86802e"
@@ -85,7 +85,7 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "c2843e01d9a2bc60bb26ad24e09734fdc2d9ec58"
+  revision = "a1f597ede03a7bef967a422b5b3a5bd08805a01e"
 
 [[projects]]
   branch = "master"
@@ -101,7 +101,7 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "d8887717615a059821345a5c23649351b52a1c0b"
+  revision = "9f648a60d9775ef5c977e7669d1673a7a67bef33"
 
 [[projects]]
   branch = "master"
@@ -112,7 +112,7 @@
     "windows",
   ]
   pruneopts = "UT"
-  revision = "c8c8c57fd1e1a977c10821a559dda983a9a9a3b5"
+  revision = "fead79001313d15903fb4605b4a1b781532cd93e"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"

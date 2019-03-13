@@ -355,7 +355,7 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Info("User updated successfully. \n")
-	log.Info(rsp)
+	log.Info(rsp.Attributes.ExtraFields)
 	jsonrsp, err := json.Marshal(rsp)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
