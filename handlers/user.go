@@ -300,7 +300,7 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 			} else {
 				return
 			}
-		case int64:
+		case float64:
 			log.Info("Int")
 			data := temp["Value"]
 			if str, ok := data.(int64); ok {
@@ -310,7 +310,7 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 			} else {
 				return
 			}
-		case float64:
+		case int64:
 			log.Info("Float")
 			data := temp["Value"]
 			if str, ok := data.(float64); ok {
