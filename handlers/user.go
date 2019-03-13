@@ -303,15 +303,22 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 		case float64:
 			log.Info("Int")
 			data := temp["Value"]
-			if str, ok := data.(int64); ok {
+			str, _ := data.(float64)
+			if temp["Key"] == "AvatarBackgroundColor" {
+				intstr := int64(str)
 				task = new(usermgr.UserAttribute)
 				task.Key = temp["Key"].(string)
-				task.Value = &usermgr.UserAttribute_IntValue{IntValue: str}
+				task.Value = &usermgr.UserAttribute_IntValue{IntValue: intstr}
 			} else {
-				log.Info(ok)
-				return
-			}
-		case int64:
+				if str, ok := data.(float64); ok {
+					task = new(usermgr.UserAttribute)
+					task.Key = temp["Key"].(string)
+					task.Value = &usermgr.UserAttribute_DoubleValue{DoubleValue: str}
+				} else {
+					return
+				}
+		}
+		/*case int64:
 			log.Info("Float")
 			data := temp["Value"]
 			if str, ok := data.(float64); ok {
@@ -320,7 +327,7 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 				task.Value = &usermgr.UserAttribute_DoubleValue{DoubleValue: str}
 			} else {
 				return
-			}
+			}*/
 		case bool:
 			log.Info("bool")
 			data := temp["Value"]
