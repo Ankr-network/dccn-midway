@@ -45,7 +45,8 @@ type UpdateAttributesRequest struct {
     user_id string `json:"UserId"`
     update_attributes_code string `json:"UpdateAttributeCode"`;
 	name string `json:"Name"`;
-    hash_password string `json:"HashPassword"`;
+	hash_password string `json:"HashPassword"`;
+	AvatarBackgroundColor int64 `json:"AvatarBackgroundColor"`
     tokens string `json:"Tokens"`;
     pub_key string `json:"PubKey"`;
     creation_date uint64 `json:"CreationDate"`; //task creation date
@@ -286,6 +287,8 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 	var temp map[string]interface{}
 	for i := range Heretask {
 		temp = Heretask[i].(map[string]interface{})
+		log.Info(temp["Value"])
+		//log.Info(temp["Value"].(type))
 		switch temp["Value"].(type){
 		case string:
 			log.Info("string")
@@ -297,17 +300,25 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 			} else {
 				return
 			}
-		case int:
+		case float64:
 			log.Info("Int")
 			data := temp["Value"]
-			if str, ok := data.(int64); ok {
+			str, _ := data.(float64)
+			if temp["Key"] == "AvatarBackgroundColor" {
+				intstr := int64(str)
 				task = new(usermgr.UserAttribute)
 				task.Key = temp["Key"].(string)
-				task.Value = &usermgr.UserAttribute_IntValue{IntValue: str}
+				task.Value = &usermgr.UserAttribute_IntValue{IntValue: intstr}
 			} else {
-				return
-			}
-		case float64:
+				if str, ok := data.(float64); ok {
+					task = new(usermgr.UserAttribute)
+					task.Key = temp["Key"].(string)
+					task.Value = &usermgr.UserAttribute_DoubleValue{DoubleValue: str}
+				} else {
+					return
+				}
+		}
+		/*case int64:
 			log.Info("Float")
 			data := temp["Value"]
 			if str, ok := data.(float64); ok {
@@ -316,7 +327,7 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 				task.Value = &usermgr.UserAttribute_DoubleValue{DoubleValue: str}
 			} else {
 				return
-			}
+			}*/
 		case bool:
 			log.Info("bool")
 			data := temp["Value"]
@@ -344,6 +355,7 @@ func UpdateAttribute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Info("User updated successfully. \n")
+	log.Info(rsp.Attributes.ExtraFields)
 	jsonrsp, err := json.Marshal(rsp)
 	if err != nil {
 		http.Error(w, util.ParseError(err), http.StatusBadRequest)
